@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin + User Panel - MOBILE VERSION</title>
+<title>Bootloader Unlock Permission Account Buy Online</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -13,6 +13,79 @@
 * {box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
 html, body {height:100%; margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#0f1220; color:#eaeaf0; overflow-x:hidden;}
 body {padding-bottom: env(safe-area-inset-bottom);}
+  
+/* Dashboard card ko position relative dena zaroori hai */
+#dashboard {
+  position: relative;
+}
+
+.support-btn {
+  position: absolute; /* Fixed ki jagah absolute */
+  top: 15px; 
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: #25D366; 
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+  z-index: 10;
+  border: 2px solid #fff;
+  text-decoration: none;
+}
+
+.support-btn img {
+  width: 28px;
+    height: 28px;
+}
+
+/* Mobile par agar dashboard chota hai toh adjustment */
+@media (max-width: 768px) {
+  .support-btn {
+   top: 30px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+  }
+}
+
+.social-links {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 15px;
+  padding-top: 5px;
+}
+
+.social-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background: rgba(255,255,255,0.05);
+}
+
+.social-icon img {
+  width: 25px;
+  height: 25px;
+}
+
+/* Hover Effects */
+.social-icon:hover {
+  transform: translateY(-3px);
+  background: rgba(255,255,255,0.1);
+}
+
+.social-icon.tg:hover {
+  box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+}
+
+.social-icon.yt:hover {
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+}
 
 .app-container {min-height:100vh; display:flex; flex-direction:column;}
 #lock {max-width:100%; width:100%; margin:0; border-radius:0; height:90vh; display:flex; flex-direction:column; justify-content:center; padding:20px; background:linear-gradient(135deg, #0f1220 0%, #1a1f3a 100%);}
@@ -45,15 +118,55 @@ input {padding:16px; margin:10px 0; border-radius:12px; border:1px solid #2a2f4a
 input::placeholder {color:#8a8fc4;}
 input:focus {outline:none; border-color:#6d7cff; box-shadow:0 0 0 3px rgba(109,124,255,0.2);}
 
-#mobileBottomNav {position:fixed; bottom:0; left:0; right:0; background:#15193a; display:flex; z-index:100; padding:10px 0; box-shadow:0 -5px 20px rgba(0,0,0,0.5);}
-.nav-item {flex:1; text-align:center; padding:12px 8px;}
-.nav-item button {width:100%; font-size:14px; padding:12px 8px; border-radius:16px; min-height:44px;}
-.nav-active {background:#6d7cff !important;}
+/* --- COMPACT MOBILE NAV CSS --- */
+#mobileBottomNav {
+  position: fixed; 
+  bottom: 0; 
+  left: 0; 
+  right: 0; 
+  background: #15193a; 
+  display: flex; 
+  z-index: 100; 
+  padding: 5px 10px; /* Padding kam ki */
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+  height: 60px; /* Fixed height set ki */
+  align-items: center;
+}
+
+.nav-item {
+  flex: 1; 
+  text-align: center; 
+  padding: 0 4px; /* Side gap kam kiya */
+}
+
+.nav-item button {
+  width: 100%; 
+  font-size: 20px; /* Icon thoda bada */
+  padding: 8px 0; /* Button ke andar space kam ki */
+  border-radius: 12px; 
+  min-height: 40px; /* Height reduce ki */
+  background: transparent; /* Default transparent */
+}
+
+.nav-active {
+  background: #6d7cff !important; 
+  color: white;
+  box-shadow: 0 4px 10px rgba(109,124,255,0.3);
+}
+
 
 .sidebar {position:fixed; left:-280px; top:0; width:180px; height:100vh; background:#15193a; z-index:200; padding:20px; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); overflow-y:auto; box-shadow:2px 0 15px rgba(0,0,0,0.4);}
 .sidebar.open {left:0;}
-.sidebar-overlay {position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:150; display:none;}
-.sidebar.open + .sidebar-overlay {display:block;}
+.sidebar-overlay {
+  position:fixed; top:0; left:0; right:0; bottom:0; 
+  background:rgba(0,0,0,0.6); z-index:150; 
+  display:none; 
+  backdrop-filter: blur(3px); /* Thoda blur effect */
+}
+.sidebar-overlay.show {
+  display:block !important; /* Jab active hoga tab dikhega */
+}
+
 .sidebar h3 {margin:0 0 25px 0; font-size:20px;}
 .sidebar button {width:100%; margin:8px 0; padding:14px; border-radius:12px; text-align:left; font-size:15px; transition:background 0.2s ease;}
 .sidebar button:hover {background:#2f36a3;}
@@ -123,13 +236,19 @@ body.login-mode #menuBtn, body.login-mode #sidebar, body.login-mode #mobileBotto
 
 .transaction-section {background: linear-gradient(135deg, #ffeb3b, #ffd54f); border-radius:16px; padding:20px; margin:15px 0;}
 .transaction-section input { background: rgba(0,0,0,0.9); color: #fff; border: 2px solid #ffeb3b; }
+.product-creds.pending { 
+  background: linear-gradient(135deg, #444, #222) !important; 
+  border: 1px dashed #ffeb3b !important; 
+  color: #ffeb3b !important; 
+}
+
 </style>
 </head>
 <body>
 
 <!-- BROADCAST POPUP -->
 <div id="broadcastPopup" class="broadcast-popup">
-  <h3 id="broadcastTitle">🎉 SPECIAL OFFER!</h3>
+  <h3 id="broadcastTitle">🎉NEW YEAR SPECIAL OFFER!</h3>
   <p id="broadcastMessage">Get 50% OFF on all premium accounts today only!</p>
   <button class="broadcast-close" onclick="closeBroadcast()">Got it! 🎁</button>
 </div>
@@ -237,6 +356,7 @@ function copyUPI() {
     <button onclick="logout()">🚪Logout</button>
   </div>
 
+
   <div class="main">
     <!-- DASHBOARD -->
     <div id="dashboard" class="card">
@@ -257,13 +377,30 @@ function copyUPI() {
         <div class="stat-card">
           <b id="userKeys">0</b>
           <small>Verified Purchase</small>
+            
         </div>
       </div>
+      <p style="font-size: 15px; opacity: 0.5; margin: 15px 0 10px 5px; text-align: center;">Buy Xaiomi Community Bootloader Unlock Permission Account.</p>
     </div>
-
+<a href="https://wa.me/918051450233?text=Hlw%Sir%20I%20need%20help
+" target="_blank" class="support-btn" title="Contact Support">
+  <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" alt="Support">
+</a>
+<div class="social-links">
+  <p style="font-size: 11px; opacity: 0.5; margin: 15px 0 10px 5px; text-align: center;">FOLLOW US</p>
+  <div style="display: flex; gap: 10px; padding-left: 5px;">
+    <a href="https://t.me/+rwHkuKp_cQFlZDll" target="_blank" class="social-icon tg">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+    </a>
+    
+    <a href="https://youtube.com/@helproot" target="_blank" class="social-icon yt">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube">
+    </a>
+  </div>
+</div>
     <!-- PRODUCTS -->
     <div id="products" class="card hidden">
-      <h3>🛒Available Accounts🛒</h3>
+      <h3>🛒Available Xaiomi Accounts🛒</h3>
       <div id="productList" class="list">Loading products...</div>
     </div>
 
@@ -327,7 +464,7 @@ function copyUPI() {
 <!-- LOGIN SCREEN -->
 <div id="lock">
   <div class="card">
-    <h3>🎛️Control Panel🎛️</h3>
+    <h3>🎛️Xaiomi Accounts Store🎛️</h3>
     <div style="display:flex;gap:12px;margin-bottom:10px">
       <button class="action" style="flex:1" onclick="showLoginType('user')">User👤Login</button>
       <button class="action" style="flex:1;background:#ff6b35" onclick="showLoginType('admin')">Admin👑Login</button>
@@ -338,9 +475,9 @@ function copyUPI() {
       <input id="userPassword" type="password" placeholder="Password">
       <p style="margin:5px 0;font-size:20px;text-align:center">
       <button class="action" onclick="userLogin()">Login</button>
-      <p style="margin:5px 0;font-size:20px;text-align:center">
+      <p style="margin:5px 0;font-size:15px;text-align:center">
         <a href="#" onclick="showUserSignup()" style="color:#6dff9a">Register</a> | 
-        <a href="#" onclick="showUserForgot()" style="color:#6dff9a">Forgot Password</a>
+        <a href="#" onclick="showUserForgot()" style="color:#6dff9a">Forget Password</a>
       </p>
     </div>
 
@@ -354,6 +491,7 @@ function copyUPI() {
     <div id="userSignup" class="hidden">
       <input id="signupEmail" type="email" placeholder="Email">
       <input id="signupPassword" type="password" placeholder="Password">
+      <p style="margin:5px 0;font-size:20px;text-align:center">
       <button class="action" onclick="userSignup()">Create Account</button>
     </div>
 
@@ -389,69 +527,63 @@ let editingProductId = null, currentQRProduct = null;
 
 // 🔥 FIXED BROADCAST - NOW WORKS PERFECTLY
 async function sendBroadcast() {
-  if (userRole !== 'admin') {
-    notify('❌ Admin only!', 'error');
-    return;
-  }
+  if (userRole !== 'admin') return notify('❌ Admin only!', 'error');
 
   const title = document.getElementById('broadcastTitleInput').value.trim();
   const message = document.getElementById('broadcastMessageInput').value.trim();
 
-  if (!title || !message) {
-    notify('❌ Enter title & message!', 'error');
-    return;
-  }
+  if (!title || !message) return notify('❌ Title aur Message dono bhariye!', 'error');
 
   try {
-    await db.collection('broadcasts').add({
+    // Ye line database mein "latest_msg" ko naye data se badal degi
+    await db.collection('broadcasts').doc("latest_msg").set({
       title: title,
       message: message,
-      sentAt: firebase.firestore.FieldValue.serverTimestamp(),
-      sentBy: currentUser.email,
-      isActive: true
-    });
-    notify('✅ Broadcast sent successfully!', 'success');
+      sentAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: false }); // merge: false matlab purana data poori tarah khatam
+    
+    notify('✅ Naya message save ho gaya!', 'success');
+    
+    // Naya message turant dikhane ke liye
+    showBroadcast(title, message);
+    
+    // Inputs saaf karne ke liye
     document.getElementById('broadcastTitleInput').value = '';
     document.getElementById('broadcastMessageInput').value = '';
-    showBroadcast(title, message);
   } catch (error) {
     console.error("Broadcast error:", error);
-    notify('❌ Failed: ' + error.message, 'error');
+    notify('❌ Update fail: ' + error.message, 'error');
   }
 }
 
+
 // 🔥 FIXED CHECK BROADCASTS
+// 🔥 UPDATED: FIXED AUTO-LOAD BROADCAST
 async function checkBroadcasts() {
   try {
-    const snapshot = await db.collection('broadcasts')
-      .where('isActive', '==', true)
-      .orderBy('sentAt', 'desc')
-      .limit(1)
-      .get();
+    // Hum hamesha "latest_msg" wala document hi uthayenge
+    const doc = await db.collection('broadcasts').doc("latest_msg").get();
     
-    if (!snapshot.empty) {
-      const latest = snapshot.docs[0].data();
-      showBroadcast(latest.title, latest.message);
+    if (doc.exists) {
+      const data = doc.data();
+      document.getElementById('broadcastTitle').textContent = data.title;
+      document.getElementById('broadcastMessage').textContent = data.message;
+      document.getElementById('broadcastPopup').style.display = 'block';
+      document.getElementById('broadcastPopup').classList.add('show');
     }
   } catch (err) {
-    console.error('Broadcast check failed:', err);
+    console.log('No saved broadcast');
   }
 }
+
+
+
 
 // 🔥 USERS CAN SUBMIT TX ID - NO PERMISSION ERRORS
 async function submitTransaction() {
   const txId = document.getElementById('transactionId').value.trim();
-  
-  if (!txId) {
-    notify('❌ Enter Transaction ID!', 'error');
-    return;
-  }
-  
-  if (!currentQRProduct) {
-    notify('❌ Select a product first!', 'error');
-    return;
-  }
-
+  if (!txId) { notify('❌ Enter Transaction ID!', 'error'); return; }
+  if (!currentQRProduct) { notify('❌ Select a product first!', 'error'); return; }
   try {
     await db.collection('pendingTransactions').add({
       userId: currentUser.uid,
@@ -461,15 +593,14 @@ async function submitTransaction() {
       status: 'pending',
       submittedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    
-    notify('✅ TX ID Submitted! Admin will verify soon...', 'success');
+    notify('✅ TX Submitted! Checking status...', 'success');
     closeQRModal();
-    
+    showSection('mykeys'); // <-- Ye line user ko status page par le jayegi
   } catch (error) {
-    console.error('Submit error:', error);
     notify(`❌ Error: ${error.message}`, 'error');
   }
 }
+
 
 // 🔥 FIXED LOAD PENDING TRANSACTIONS
 // 🔥 NO INDEX NEEDED - PERFECTLY WORKS!
@@ -525,41 +656,41 @@ async function loadPendingTransactions() {
 }
 // 🔥 FIXED VERIFY TRANSACTION WITH SOLD OUT FEATURE
 async function verifyTransaction(txId, userId, productId) {
-  if (!confirm('Verify this payment and grant access? Product will be marked SOLD OUT.')) return;
+  if (!confirm('Verify this payment and grant access?')) return;
   
   try {
     const batch = db.batch();
-    const txRef = db.collection('pendingTransactions').doc(txId);
-    const userRef = db.collection('users').doc(userId);
-    const productRef = db.collection('products').doc(productId);
-    
-    // Mark transaction as verified
-    batch.update(txRef, { 
+    // Transaction ko verified mark karein taaki user ke screen se "Pending" hat jaye
+    batch.update(db.collection('pendingTransactions').doc(txId), { 
       status: 'verified', 
       verifiedAt: firebase.firestore.FieldValue.serverTimestamp() 
     });
     
-    // Grant product access to user
-    batch.update(userRef, { 
+    // User ko product access dein
+    batch.update(db.collection('users').doc(userId), { 
       purchasedProducts: firebase.firestore.FieldValue.arrayUnion(productId) 
     });
     
-    // 🔥 MARK PRODUCT AS SOLD OUT
-    batch.update(productRef, { 
+    // Product ko sold out karein
+    batch.update(db.collection('products').doc(productId), { 
       isSoldOut: true,
       soldAt: firebase.firestore.FieldValue.serverTimestamp(),
       soldTo: userId
     });
     
     await batch.commit();
-    notify('✅ Access granted! Product marked SOLD OUT!', 'success');
+    notify('✅ Approved! User can now see credentials.', 'success');
     loadPendingTransactions();
-    loadUserData();
-    renderProductsList(); // Refresh products list
+    // UI Update karne ke liye
+    if(currentUser.uid === userId) {
+        await loadUserData();
+        renderMyKeys();
+    }
   } catch (err) {
     notify('❌ Verification failed: ' + err.message, 'error');
   }
 }
+
 
 async function rejectTransaction(txId) {
   if (!confirm('Reject this transaction?')) return;
@@ -619,6 +750,7 @@ function copyToClipboard(text, button) {
 }
 
 // 🔥 FIXED PRODUCTS LIST WITH SOLD OUT CHECK
+// --- NEW SORTING LOGIC FOR PRODUCTS ---
 async function renderProductsList() {
   try {
     const snapshot = await db.collection('products').get();
@@ -629,44 +761,63 @@ async function renderProductsList() {
       return;
     }
 
+    // 🔥 DHAYAN SE DEKHO: Ye hai sorting ka magic
+    allProducts.sort((a, b) => {
+      // 1. Status Check: Jo sold nahi hai (false) wo upar rahega
+      if (a.isSoldOut !== b.isSoldOut) {
+        return a.isSoldOut ? 1 : -1; 
+      }
+      // 2. Date Check: Agar dono available hain, toh naya (Latest) upar dikhao
+      // Note: Iske liye addProduct mein submittedAt hona zaroori hai
+      const dateA = a.submittedAt?.toMillis() || 0;
+      const dateB = b.submittedAt?.toMillis() || 0;
+      return dateB - dateA; // B - A matlab Latest First
+    });
+
     let html = '';
     allProducts.forEach(p => {
       const isPurchased = userProducts.includes(p.id);
       const isSoldOut = p.isSoldOut || false;
       
+      // Date dikhane ke liye format
+      const dateStr = p.submittedAt ? new Date(p.submittedAt.toDate()).toLocaleDateString() : 'New';
+      
       if (isSoldOut) {
+        // --- SOLD OUT LOOK (Niche dikhega) ---
         html += `
-          <div class="item">
-            <b>${p.name}</b><br>
-            <small class="bad">🔴 SOLD OUT</small><br>
-            <small>ID: ${p.id} | Price: ₹${p.price}</small>
-          </div>
-        `;
-      } else if (isPurchased) {
-        html += `
-          <div class="item">
-            <b>${p.name}</b><br>
-            <small class="ok">✅ Purchased (Check My Keys)</small>
-            <small>ID: ${p.id} | Price: ₹${p.price}</small>
-          </div>
-        `;
-      } else {
-        html += `
-          <div class="item">
-            <b>${p.name}</b><br>
-            <small>ID: ${p.id} | Price: ₹${p.price}</small><br>
-            <div style="margin:10px 0;">
-              <button class="action" onclick="showQRModal('${p.id}')">
-                💳 Pay ₹${p.price} (Manual)
-              </button>
+          <div class="item" style="opacity: 0.6; border-left: 4px solid #ff4444;">
+            <div style="display:flex; justify-content:space-between;">
+               <b>${p.name}</b>
+               <small style="color:#ff4444; font-weight:bold;">SOLD OUT</small>
             </div>
-          </div>
-        `;
+            <small>Price: ₹${p.price} | Sold Date: ${dateStr}</small>
+          </div>`;
+      } else if (isPurchased) {
+        // --- PURCHASED LOOK ---
+        html += `
+          <div class="item" style="border-left: 4px solid #6dff9a;">
+            <b>${p.name}</b> <small class="ok">(Purchased)</small><br>
+            <button class="action" onclick="showSection('mykeys')" style="padding:5px 10px; font-size:12px; margin-top:10px;">View Access</button>
+          </div>`;
+      } else {
+        // --- AVAILABLE LOOK (Upar dikhega) ---
+        html += `
+          <div class="item" style="border-left: 4px solid #6d7cff;">
+            <div style="display:flex; justify-content:space-between;">
+               <b>${p.name}</b>
+               <b class="ok">₹${p.price}</b>
+            </div>
+            <small>Listed on: ${dateStr}</small><br>
+            <div style="margin:0px 0;">
+              <button class="action" onclick="showQRModal('${p.id}')">💳 Buy Now</button>
+            </div>
+          </div>`;
       }
     });
     
     document.getElementById('productList').innerHTML = html;
   } catch (err) {
+    console.error("Sorting Error:", err);
     document.getElementById('productList').innerHTML = '<p class="bad">Error loading products</p>';
   }
 }
@@ -674,72 +825,110 @@ async function renderProductsList() {
 // 🔥 FIXED MY KEYS
 async function renderMyKeys() {
   try {
-    document.getElementById('myKeyList').innerHTML = 'Loading your purchases...';
+    const keyList = document.getElementById('myKeyList');
+    keyList.innerHTML = '<div class="item"><div class="spinner"></div> Loading...</div>';
+    
+    // 1. Pehle user ke pending payments fetch karein
+    const pendingSnapshot = await db.collection('pendingTransactions')
+      .where('userId', '==', currentUser.uid)
+      .where('status', '==', 'pending')
+      .get();
+
+    // 2. Verified products fetch karein
     const productsSnapshot = await db.collection('products').get();
     const products = productsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-    
-    const myPurchasedProducts = products.filter(p => userProducts.includes(p.id));
-    
-    if (myPurchasedProducts.length === 0) {
-      document.getElementById('myKeyList').innerHTML = `
-        <div class="item">
-          <p class="bad">No verified purchases yet!<br>
-          <small>Check pending payments or submit payment proof.</small>
-          </p>
-        </div>
-      `;
-      return;
-    }
-    
+    const myPurchased = products.filter(p => userProducts.includes(p.id));
+
     let html = '';
-    myPurchasedProducts.forEach(p => {
-      html += `
-        <div class="item">
-          <b>${p.name}</b>
-          <div class="product-creds">
-            <b>🆔 ID:</b> <span class="ok">${p.loginId || p.key}</span>
-            <div class="copy-row">
-              <button class="copy-btn" onclick="copyToClipboard('${p.loginId || p.key}', this)">Copy ID</button>
+
+    // --- PENDING SECTION (Ye naya hai) ---
+    if (!pendingSnapshot.empty) {
+      html += '<h4 style="color:#ffeb3b; margin: 10px 0;">⏳ Verification Pending...... ⏳</h4>';
+      pendingSnapshot.forEach(doc => {
+        const tx = doc.data();
+        html += `
+          <div class="item" style="border-left: 4px solid #ffeb3b; background: rgba(255,235,59,0.05);">
+            <b>Order for Product ID: ${tx.productId}</b><br>
+            <small>UTR: ${tx.transactionId}</small>
+            <div class="product-creds pending" style="margin-top:8px; font-size:13px;">
+               Please wait—admin verifying your payment.
             </div>
-            <b>🔑 Key:</b> <span class="ok">${p.key}</span>
-            <div class="copy-row">
-              <button class="copy-btn" onclick="copyToClipboard('${p.key}', this)">Copy Key</button>
-            </div>
-            <b>💰 Price:</b> <span class="ok">₹${p.price}</span>
           </div>
-        </div>
-      `;
-    });
-    
-    document.getElementById('myKeyList').innerHTML = html;
+        `;
+      });
+    }
+
+    // --- PURCHASED SECTION ---
+    if (myPurchased.length > 0) {
+      html += '<h4 style="color:#6dff9a; margin: 20px 0 10px 0;">✅ My Accounts</h4>';
+      myPurchased.forEach(p => {
+        const creds = p.loginId || p.key || 'N/A';
+        html += `
+          <div class="item">
+            <b>${p.name}</b>
+            <div class="product-creds">
+              <b>🆔 ID:</b> <span class="ok">${p.loginId}</span>
+              <div class="copy-row">
+                <button class="copy-btn" onclick="copyToClipboard('${p.loginId}', this)">Copy ID</button>
+              </div>
+              ${p.key ? `<b>🔑 Key:</b> <span class="ok">${p.key}</span><div class="copy-row"><button class="copy-btn" onclick="copyToClipboard('${p.key}', this)">Copy Key</button></div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (pendingSnapshot.empty && myPurchased.length === 0) {
+      html = '<div class="item" style="text-align:center;"><p class="bad">Purchases or pending requests were not found.</p></div>';
+    }
+
+    keyList.innerHTML = html;
   } catch(err) {
-    document.getElementById('myKeyList').innerHTML = '<p class="bad">Error loading keys</p>';
+    console.error(err);
+    document.getElementById('myKeyList').innerHTML = '<div class="item"><p class="bad">Error loading data</p></div>';
   }
 }
+
+
 
 // 🔥 FIXED LOAD USER DATA
 async function loadUserData() {
   try {
-    document.getElementById('userInfo').textContent = currentUser.email;
-    
+    // 1. User ka data aur role check karna
     const userDoc = await db.collection('users').doc(currentUser.uid).get();
     if(userDoc.exists) {
       const data = userDoc.data();
       userRole = data.role || 'user';
       userProducts = data.purchasedProducts || [];
-    } else {
-      // Create user document if doesn't exist
-      await db.collection('users').doc(currentUser.uid).set({
-        email: currentUser.email,
-        role: 'user',
-        purchasedProducts: [],
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
     }
     
+    // 2. Sidemenu mein Name aur Role set karna (Gmail se naam nikal kar)
+    const displayName = currentUser.email.split('@')[0].toUpperCase();
+    document.getElementById('userType').innerHTML = `
+      <div style="text-align:left; padding-left:10px;">
+        <span style="font-size:18px; color:#fff;">👤${displayName}✅</span><br>
+        <span style="font-size:14px; color:#6dff9a;">${userRole === 'admin' ? '👑 ADMIN PANEL' : '   User Panel'}</span>
+      </div>
+    `;
+
+    // 3. DASHBOARD FIX: Admin aur User ke liye alag logic
+    const allProductsSnap = await db.collection('products').get(); // Saare accounts
+    const availableProductsSnap = await db.collection('products').where('isSoldOut', '==', false).get(); // Khali available
+
+    if (userRole === 'admin') {
+      // Admin ko dashboard par total (bikay huye + available) saare dikhao
+      document.getElementById('totalProducts').textContent = allProductsSnap.size;
+    } else {
+      // User ko sirf wahi dikhao jo abhi stock mein hain
+      document.getElementById('totalProducts').textContent = availableProductsSnap.size;
+    }
+
+    // 4. Baki stats update karna
+    document.getElementById('userInfo').textContent = currentUser.email;
     document.getElementById('roleBadge').textContent = userRole.toUpperCase();
-    document.getElementById('userType').textContent = userRole === 'admin' ? 'Admin👑Panel' : 'User👤Panel';
+    document.getElementById('userKeys').textContent = userProducts.length;
     
+    // 5. Admin/User ke buttons show-hide karna
     if(userRole === 'admin') {
       document.getElementById('adminSection').classList.remove('hidden');
       document.getElementById('userSection').classList.add('hidden');
@@ -747,14 +936,13 @@ async function loadUserData() {
       document.getElementById('userSection').classList.remove('hidden');
       document.getElementById('adminSection').classList.add('hidden');
     }
-    
-    document.getElementById('userKeys').textContent = userProducts.length;
-    const productsSnapshot = await db.collection('products').get();
-    document.getElementById('totalProducts').textContent = productsSnapshot.size;
+
   } catch(err) {
-    console.error(err);
+    console.error("Dashboard Error:", err);
   }
 }
+
+
 
 // 🔥 ALL OTHER FUNCTIONS (UNCHANGED BUT WORKING)
 function toggleSidebar() {
@@ -769,13 +957,16 @@ function toggleSidebar() {
 
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show'); // Overlay dikhao
   document.getElementById('menuBtn').classList.add('hidden');
 }
 
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show'); // Overlay chupao
   document.getElementById('menuBtn').classList.remove('hidden');
 }
+
 
 function showSection(id, fromNav = false) {
   closeSidebar();
@@ -815,20 +1006,8 @@ function closeBroadcast() {
 
 
 
-window.addEventListener('load', function() {
-  // Always show popup on login/page load
-  document.getElementById('broadcastPopup').style.display = 'block';
-});
 
-function closeBroadcast() {
-  document.getElementById('broadcastPopup').style.display = 'none';
-  // Optional: Auto-hide after 10 seconds
-  setTimeout(() => {
-    closeBroadcast();
-  }, 10000);
-}
 
-//danger
 
 
 function showLoginType(type) {
@@ -891,22 +1070,29 @@ async function forgotPassword() {
   }
 }
 
+// 1. Logout Function
 function logout() {
-  auth.signOut();
+  auth.signOut().then(() => {
+    location.reload(); 
+  }).catch((err) => {
+    console.error("Logout Error:", err);
+  });
   closeSidebar();
 }
 
+// 2. Login Status Check (Isse Dashboard aur Broadcast khulega)
 auth.onAuthStateChanged(async(user) => {
   if(user) {
     currentUser = user;
-    await loadUserData();
-    unlockApp();
-    checkBroadcasts();
+    await loadUserData(); // Dashboard ka data load hoga
+    unlockApp();          // App khulega
+    checkBroadcasts();    // 👈 Ye line database se saved message uthayegi
   } else {
-    showLockScreen();
+    showLockScreen();     // Login page dikhega
   }
 });
 
+// 3. App Unlock logic
 function unlockApp() {
   document.body.classList.remove('login-mode');
   document.getElementById('lock').classList.add('hidden');
@@ -914,6 +1100,7 @@ function unlockApp() {
   showSection('dashboard');
 }
 
+// 4. Lock Screen logic
 function showLockScreen() {
   document.body.classList.add('login-mode');
   document.getElementById('lock').classList.remove('hidden');
@@ -921,6 +1108,14 @@ function showLockScreen() {
   showLoginType('user');
 }
 
+// 5. Broadcast Popup Band karne ka function
+function closeBroadcast() {
+  const popup = document.getElementById('broadcastPopup');
+  popup.style.display = 'none';
+  popup.classList.remove('show');
+}
+
+// 6. User Signup/Forgot Password toggles
 function showUserSignup() {
   document.getElementById('userSignup').classList.remove('hidden');
   document.getElementById('userLogin').classList.add('hidden');
@@ -930,7 +1125,6 @@ function showUserForgot() {
   document.getElementById('userForgot').classList.remove('hidden');
   document.getElementById('userLogin').classList.add('hidden');
 }
-
 // Admin functions
 async function giveManualAccess() {
   if (userRole !== 'admin') {
@@ -1069,8 +1263,13 @@ async function addProduct() {
       editingProductId = null;
     } else {
       await db.collection('products').add({
-        name, loginId: accessId, key, price, isSoldOut: false
-      });
+    name: name, 
+    loginId: accessId, 
+    key: key, 
+    price: price, 
+    isSoldOut: false,
+    submittedAt: firebase.firestore.FieldValue.serverTimestamp() // 🔥 Ye line date record karegi
+  });
       notify('✅ Product added!');
     }
 
