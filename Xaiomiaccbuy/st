@@ -1,0 +1,555 @@
+
+/* [ALL YOUR EXISTING STYLES REMAIN SAME - NO CHANGES NEEDED] */
+* {box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+html, body {height:100%; margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#0f1220; color:#eaeaf0; overflow-x:hidden;}
+body {padding-bottom: env(safe-area-inset-bottom);}
+
+
+/* Dashboard card ko position relative dena zaroori hai */
+#dashboard {
+  position: relative;
+}
+
+.support-btn {
+  position: absolute; /* Fixed ki jagah absolute */
+  top: 15px; 
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: #25D366; 
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+  z-index: 10;
+  border: 2px solid #fff;
+  text-decoration: none;
+}
+
+.support-btn img {
+  width: 28px;
+    height: 28px;
+}
+
+/* Mobile par agar dashboard chota hai toh adjustment */
+@media (max-width: 768px) {
+  .support-btn {
+   top: 5px;
+    right: 5px;
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* Live Indicator Animation */
+.live-dot {
+  height: 8px;
+  width: 8px;
+  background-color: #6dff9a;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+  box-shadow: 0 0 8px #6dff9a;
+  animation: blink-live 1.5s infinite;
+}
+
+@keyframes blink-live {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.live-status {
+  font-size: 11px;
+  color: #6dff9a;
+  font-weight: bold;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+
+
+
+.social-links {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 15px;
+  padding-top: 5px;
+}
+
+.social-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background: rgba(255,255,255,0.05);
+}
+
+.social-icon img {
+  width: 25px;
+  height: 25px;
+}
+
+/* Hover Effects */
+.social-icon:hover {
+  transform: translateY(-3px);
+  background: rgba(255,255,255,0.1);
+}
+
+.social-icon.tg:hover {
+  box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+}
+
+.social-icon.yt:hover {
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+}
+
+
+
+
+
+#lock {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  border-radius: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* yaha se aap login page ko up down center kar sakte bas end ko change karna i */
+  padding: 30px;
+  padding-top: 150px;
+  position: relative; /* Overlay ke liye zaroori hai */
+  overflow: hidden;
+
+  /* Background Wallpaper */
+  background: url('https://helproot.github.io/images/wallpaper-2.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Card ko blur ke upar dikhane ke liye */
+#lock .card {
+  position: relative;
+  z-index: 2; /* Blur layer se upar rakhne ke liye */
+  background: rgba(27, 31, 59, 0.6);
+  backdrop-filter: blur(7px); /* Card ke andar extra depth */
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  border-radius: 30px; /* Thoda zyada rounded modern look ke liye */
+}
+
+
+
+button {padding:14px 20px; margin:8px 0; border:0; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; min-height:48px; touch-action:manipulation;}
+.action {background:#6d7cff; color:#fff;}
+.action:hover {background:#5a6de6;}
+.danger {background:#ff4444; color:#fff;}
+.danger:hover {background:#e63939;}
+.admin-only {background:#ff6b35 !important;}
+.manual-give {background:#00d4aa !important; color:#000;}
+.manual-verify {background:#ffeb3b !important; color:#000;}
+.sold-out {background:#ff4444 !important; color:#fff !important;}
+
+#qrModal {position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:1000; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px;}
+#qrModal.show {display:flex;}
+.qr-container {background:#1b1f3b; padding:30px; border-radius:24px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.6);}
+#qrCode {margin:20px 0; border-radius:16px; background:#fff; padding:10px;}
+.qr-close {position:absolute; top:20px; right:20px; background:#ff4444; color:#fff; border:none; border-radius:50%; width:50px; height:50px; font-size:20px; cursor:pointer;}
+
+.broadcast-popup {position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #ff6b35, #ff8e53); color:#fff; padding:30px; border-radius:24px; max-width:90vw; max-height:80vh; z-index:999; display:none; box-shadow:0 30px 60px rgba(255,107,53,0.4); text-align:center; backdrop-filter:blur(20px);}
+.broadcast-popup.show {display:block; animation:popupSlide 0.4s cubic-bezier(0.4,0,0.2,1);}
+.broadcast-popup h3 {margin:0 0 15px 0; font-size:24px;}
+.broadcast-popup p {font-size:16px; line-height:1.5; margin-bottom:25px;}
+.broadcast-close {background:#fff; color:#ff6b35; border:none; padding:12px 30px; border-radius:25px; font-weight:700; font-size:16px; cursor:pointer;}
+@keyframes popupSlide {from {opacity:0; transform:translate(-50%,-60%) scale(0.9);} to {opacity:1; transform:translate(-50%,-50%) scale(1);}}
+
+input {padding:16px; margin:10px 0; border-radius:12px; border:1px solid #2a2f4a; background:#1b1f3b; color:#fff; font-size:16px; width:100%;}
+input::placeholder {color:#8a8fc4;}
+input:focus {outline:none; border-color:#6d7cff; box-shadow:0 0 0 3px rgba(109,124,255,0.2);}
+
+
+
+#toast {
+  visibility: hidden;
+  min-width: 300px;
+  background-color: #1b1f3b; 
+  color: #ffffff;
+  text-align: center;
+  border-radius: 15px;
+  padding: 16px;
+  
+  /* Ye 3 lines sabse important hain */
+  position: fixed; 
+  z-index: 999999 !important; /* Isse ye har ek cheez ke upar aa jayega */
+  bottom: 10%; /* Screen ke niche se 10% upar */
+  
+  left: 50%;
+  transform: translateX(-50%);
+  border: 2px solid #6d7cff;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(109, 124, 255, 0.5);
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: none !important; /* Ispe khud pe blur mat lagao taaki saaf dikhe */
+}
+
+#toast.show {
+  visibility: visible;
+  animation: fadein 0.5s ease-out;
+}
+
+@keyframes fadein {
+  from { bottom: 0; opacity: 0; }
+  to { bottom: 10%; opacity: 1; }
+}
+
+
+
+
+
+/* --- COMPACT MOBILE NAV CSS --- */
+#mobileBottomNav {
+  position: fixed; 
+  bottom: 0; 
+  left: 0; 
+  right: 0; 
+  background: #15193a; 
+  display: flex; 
+  z-index: 100; 
+  padding: 5px 10px; /* Padding kam ki */
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+  height: 60px; /* Fixed height set ki */
+  align-items: center;
+}
+
+.nav-item {
+  flex: 1; 
+  text-align: center; 
+  padding: 0 4px; /* Side gap kam kiya */
+}
+
+.nav-item button {
+  width: 100%; 
+  font-size: 20px; /* Icon thoda bada */
+  padding: 8px 0; /* Button ke andar space kam ki */
+  border-radius: 12px; 
+  min-height: 40px; /* Height reduce ki */
+  background: transparent; /* Default transparent */
+}
+
+.nav-active {
+  background: #6d7cff !important; 
+  color: white;
+  box-shadow: 0 4px 10px rgba(109,124,255,0.3);
+}
+/* Profile Card: Vertical Layout */
+.profile-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px 10px;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;    
+  text-align: center;
+  gap: 12px;
+  width: 100%; /* Sidebar ki width ke barabar */
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 40px; /* Aapke purane code ki height ke barabar */
+  height: 40px;
+}
+
+.profile-img {
+  width: 50px !important; /* Size thoda badhaya */
+  height: 50px !important;
+  border-radius: 50%;
+  overflow: hidden; /* Ye zaroori hai photo ko gol rakhne ke liye */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6d7cff, #a5b1ff);
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.profile-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Photo ko perfect fit karega */
+}
+
+.sidebar {
+  position:fixed; left:-280px; top:0; width:180px; height:100vh; 
+  background:#15193a; z-index:200; padding:20px; 
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1); 
+  overflow-y:auto; box-shadow:2px 0 15px rgba(0,0,0,0.4);
+  display: flex; /* Naya add kiya */
+  flex-direction: column; /* Naya add kiya */
+}
+
+/* 🔥 Blinking Green Dot Fixed */
+.status-indicator {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 12px;
+  height: 12px;
+  background: #6dff9a;
+  border: 2px solid #15193a;
+  border-radius: 50%;
+  /* Animation call */
+  animation: pulse-dot 1.5s infinite ease-in-out;
+}
+
+/* Animation Keyframes */
+@keyframes pulse-dot {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(109, 255, 154, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(109, 255, 154, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(109, 255, 154, 0); }
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.u-name {
+  font-size: 15px; /* Thoda scannable size */
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+  width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.u-role {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6dff9a;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+
+
+.sidebar {position:fixed; left:-280px; top:0; width:180px; height:100vh; background:#15193a; z-index:200; padding:20px; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); overflow-y:auto; box-shadow:2px 0 15px rgba(0,0,0,0.4);}
+.sidebar.open {left:0;}
+.sidebar-overlay {
+  position:fixed; top:0; left:0; right:0; bottom:0; 
+  background:rgba(0,0,0,0.6); z-index:150; 
+  display:none; 
+  backdrop-filter: blur(3px); /* Thoda blur effect */
+}
+.sidebar-overlay.show {
+  display:block !important; /* Jab active hoga tab dikhega */
+}
+
+.sidebar h3 {margin:0 0 25px 0; font-size:20px;}
+.sidebar button {width:100%; margin:8px 0; padding:14px; border-radius:12px; text-align:left; font-size:15px; transition:background 0.2s ease;}
+.sidebar button:hover {background:#2f36a3;}
+
+
+
+
+
+.main{ flex:1; padding:14px; padding-bottom:110px; overflow-y:auto; display:flex; flex-direction:column; align-items:center;}
+.card{ width:100%; max-width:520px; background:linear-gradient(180deg,#1b1f3b,#141735); border-radius:22px; padding:22px 18px; margin:12px 0; box-shadow:0 15px 45px rgba(0,0,0,.45);}
+.card h3{ margin:0 0 18px 0; font-size:20px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:10px; text-align:center;}
+
+.stats-grid{ width:100%; display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px;}
+.stat-card{ background:linear-gradient(135deg,#2b3080,#1f245c); padding:18px 10px; border-radius:18px; text-align:center; box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);}
+.stat-card b{ display:block; font-size:11px; letter-spacing:.5px; opacity:.75; margin-bottom:6px;}
+.stat-card span{ font-size:20px; font-weight:700;}
+.ok{color:#6dff9a}
+.bad{color:#ff7b7b}
+.pending{color:#ffeb3b}
+
+.copy-btn {background:#00d4aa !important; color:#000 !important; font-size:14px; padding:8px 16px; margin:2px; border-radius:8px; font-weight:600;}
+.copy-btn:hover {background:#00b894 !important;}
+.copy-success {background:#6dff9a !important; color:#000 !important; animation:copyPulse 0.3s ease;}
+
+@keyframes copyPulse {0%,100%{transform:scale(1);} 50%{transform:scale(1.05);}}
+
+@media(min-width:768px){
+  .stats-grid{ grid-template-columns:repeat(4,1fr);}
+  .app-container {flex-direction:row;}
+  .sidebar {left:0; width:260px; z-index:1;}
+  .sidebar-overlay {display:none !important;}
+  #mobileBottomNav {display:none;}
+  .main {padding:10px; padding-left:295px; padding-bottom:30px;}
+  #menuBtn {display:none;}
+  #lock {max-width:500px; margin:50px auto; height:auto;}
+  .card {max-width:700px;}
+}
+
+@media (max-width: 480px) {
+  .main {padding:15px;}
+  .card {padding:20px; margin:10px 0;}
+  button {padding:16px; font-size:17px;}
+  input {padding:18px;}
+}
+
+.list .item {background:#23286a; border-radius:16px; padding:20px; margin:15px 0;}
+.row {display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;}
+.row button {flex:1; min-width:100px;}
+
+.product-creds { background: linear-gradient(135deg, #1a3a1a, #2d5a2d); border: 1px solid #4a9a4a; border-radius: 12px; padding: 15px; margin: 10px 0; }
+.product-creds.pending { background: linear-gradient(135deg, #ffeb3b, #ffd54f); border: 1px solid #fbc02d; color: #000; }
+.product-creds b { color: #6dff9a; font-size: 16px; }
+.product-creds.pending b { color: #000; }
+.product-creds .copy-row {display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+.product-creds .copy-row button {flex:1; min-width:80px;}
+
+#notify {position:fixed; top:20px; right:20px; left:20px; max-width:400px; margin:0 auto; background:#6d7cff; color:#fff; padding:16px 20px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.4); display:none; z-index:9999; font-weight:500;}
+.hidden {display:none !important;}
+
+body.login-mode #menuBtn, body.login-mode #sidebar, body.login-mode #mobileBottomNav { display: none !important;}
+
+#menuBtn {position:fixed; top:20px; left:20px; z-index:250; background:#6d7cff; border:none; border-radius:12px; width:50px; height:50px; display:flex; align-items:center; justify-content:center; font-size:20px; transition:all 0.25s cubic-bezier(0.4,0,0.2,1);}
+#menuBtn.hidden {opacity:0; transform:scale(0.8); pointer-events:none;}
+
+.manual-access-section { background: linear-gradient(135deg, #00d4aa, #00a085); border-radius: 16px; padding: 20px; margin: 15px 0; }
+.manual-access-section input { background: rgba(255,255,255,0.95); color: #000; border: 2px solid #00d4aa; }
+.manual-access-section button { background: #000 !important; color: #00d4aa !important; font-weight: 700; border: 2px solid #00d4aa; }
+
+.broadcast-section {background: linear-gradient(135deg, #ff6b35, #ff8e53); border-radius:16px; padding:20px; margin:15px 0;}
+.broadcast-section textarea {width:100%; height:120px; background:rgba(255,255,255,0.95); color:#000; border-radius:12px; border:2px solid #ff6b35; padding:15px; font-size:16px; resize:vertical;}
+
+.transaction-section {background: linear-gradient(135deg, #ffeb3b, #ffd54f); border-radius:16px; padding:20px; margin:15px 0;}
+.transaction-section input { background: rgba(0,0,0,0.9); color: #fff; border: 2px solid #ffeb3b; }
+.product-creds.pending { 
+  background: linear-gradient(135deg, #444, #222) !important; 
+  border: 1px dashed #ffeb3b !important; 
+  color: #ffeb3b !important; 
+}
+
+
+
+.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #6d7cff; }
+input:checked + .slider:before { transform: translateX(26px); }
+
+/* ✨ GLASSMORPHISM MODE ✨ */
+body.glass-mode {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e) !important;
+}
+
+body.glass-mode .card, 
+body.glass-mode .qr-container, 
+body.glass-mode .product-item {
+    background: rgba(255, 255, 255, 0.05) !important; /* Transparent white */
+    backdrop-filter: blur(15px) !important;           /* Blur effect */
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+}
+
+body.glass-mode button:not(.qr-close) {
+    background: rgba(109, 124, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(5px);
+}
+
+
+
+.whatsapp-container {
+    position: fixed;
+    bottom: 100px; /* Initial position */
+    right: 20px;
+    z-index: 10001;
+    touch-action: none; /* Mobile drag ke liye zaroori hai */
+    user-select: none;
+}
+
+.whatsapp-float {
+    background-color: #25d366;
+    color: #FFF;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 2px 5px 15px rgba(0,0,0,0.3);
+    cursor: move; /* Cursor change hoga drag ke waqt */
+}
+
+.whatsapp-float img {
+    width: 25px;
+    height: 25px;
+    margin-right: 8px;
+    pointer-events: none; /* Image drag mein rukawat na bane */
+}
+
+/* Glassmorphism support */
+body.glass-mode .whatsapp-float {
+    background: rgba(37, 211, 102, 0.2) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+
+
+/* Container jo dot aur text ko ek line mein rakhega */
+.stock-status {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Card ke hisaab se center ya flex-start rakhein */
+    gap: 6px; /* Dot aur text ke beech ki doori */
+    margin-bottom: 5px;
+}
+
+/* Pulse Dot ka perfect alignment */
+.pulse-dot {
+    height: 8px;
+    width: 8px;
+    background-color: #00d4aa;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    /* Pulsing animation */
+    box-shadow: 0 0 0 rgba(0, 212, 170, 0.4);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(0, 212, 170, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 212, 170, 0);
+    }
+}
+
+
+
+
+
+let currentUser = null;
+let currentProductPrice = 0; // Ye add karein
+let currentQRProduct = null;  // Ye add karein
