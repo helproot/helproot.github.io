@@ -1,0 +1,1617 @@
+/* 🔻 YAHAN SE */
+const firebaseConfig = {
+  apiKey: "AIzaSyCDCijRwIxpHJK0gYmElkocvu8tNKFykpc",
+  authDomain: "generalstore-b6e17.firebaseapp.com",
+  databaseURL: "https://generalstore-b6e17-default-rtdb.firebaseio.com",
+  projectId: "generalstore-b6e17",
+  storageBucket: "generalstore-b6e17.firebasestorage.app",
+  messagingSenderId: "239645257410",
+  appId: "1:239645257410:web:43825aac8e30d15d4f955b",
+  measurementId: "G-9YQ7BK5TYT"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser = null, userRole = 'user', userProducts = [], pendingTransactions = [], allProducts = [];
+let editingProductId = null, currentQRProduct = null;
+
+// 🔥 FIXED BROADCAST - NOW WORKS PERFECTLY
+async function sendBroadcast() {
+  if (userRole !== 'admin') return notify('❌ Admin only!', 'error');
+
+  const title = document.getElementById('broadcastTitleInput').value.trim();
+  const message = document.getElementById('broadcastMessageInput').value.trim();
+
+  if (!title || !message) return notify('❌ Title aur Message dono bhariye!', 'error');
+
+  try {
+    // Ye line database mein "latest_msg" ko naye data se badal degi
+    await db.collection('broadcasts').doc("latest_msg").set({
+      title: title,
+      message: message,
+      sentAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: false }); // merge: false matlab purana data poori tarah khatam
+    
+    notify('✅ Naya message save ho gaya!', 'success');
+    
+    // Naya message turant dikhane ke liye
+    showBroadcast(title, message);
+    
+    // Inputs saaf karne ke liye
+    document.getElementById('broadcastTitleInput').value = '';
+    document.getElementById('broadcastMessageInput').value = '';
+  } catch (error) {
+    console.error("Broadcast error:", error);
+    notify('❌ Update fail: ' + error.message, 'error');
+  }
+}
+
+
+// 🔥 FIXED CHECK BROADCASTS
+// 🔥 UPDATED: FIXED AUTO-LOAD BROADCAST
+async function checkBroadcasts() {
+  try {
+    // Hum hamesha "latest_msg" wala document hi uthayenge
+    const doc = await db.collection('broadcasts').doc("latest_msg").get();
+    
+    if (doc.exists) {
+      const data = doc.data();
+      document.getElementById('broadcastTitle').textContent = data.title;
+      document.getElementById('broadcastMessage').textContent = data.message;
+      document.getElementById('broadcastPopup').style.display = 'block';
+      document.getElementById('broadcastPopup').classList.add('show');
+    }
+  } catch (err) {
+    console.log('No saved broadcast');
+  }
+}
+
+
+
+
+// 🔥 USERS CAN SUBMIT TX ID - NO PERMISSION ERRORS
+async function submitTransaction() {
+  const txId = document.getElementById('transactionId').value.trim();
+  if (!txId) { notify('❌ Enter Transaction ID!', 'error'); return; }
+  if (!currentQRProduct) { notify('❌ Select a product first!', 'error'); return; }
+  try {
+    await db.collection('pendingTransactions').add({
+      userId: currentUser.uid,
+      userEmail: currentUser.email,
+      transactionId: txId,
+      productId: currentQRProduct,
+      status: 'pending',
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    notify('✅ TX Submitted! Checking status...', 'success');
+    closeQRModal();
+    showSection('mykeys'); // <-- Ye line user ko status page par le jayegi
+  } catch (error) {
+    notify(`❌ Error: ${error.message}`, 'error');
+  }
+}
+
+
+// 🔥 FIXED LOAD PENDING TRANSACTIONS
+// 🔥 NO INDEX NEEDED - PERFECTLY WORKS!
+async function loadPendingTransactions() {
+  if (userRole !== 'admin') return;
+
+  const listDiv = document.getElementById('transactionList');
+  const countSpan = document.getElementById('pendingCount');
+  
+  try {
+    listDiv.innerHTML = '<div style="text-align:center; padding:20px;">⌛ Fetching Payments...</div>';
+    
+    // Sabhi pending payments fetch karein
+    const snapshot = await db.collection('pendingTransactions')
+      .where('status', '==', 'pending')
+      .get();
+
+    countSpan.textContent = snapshot.size;
+
+    if (snapshot.empty) {
+      listDiv.innerHTML = '<p style="text-align:center; padding:30px; color:#6dff9a; font-weight:bold;">✨ No Pending Payments! ✨</p>';
+      return;
+    }
+
+    let html = '';
+    // Sorting: Newest first (Manually sorting because no index required)
+    const docs = snapshot.docs.sort((a, b) => (b.data().submittedAt?.toMillis() || 0) - (a.data().submittedAt?.toMillis() || 0));
+
+    docs.forEach(doc => {
+      const tx = doc.data();
+      const time = tx.submittedAt ? new Date(tx.submittedAt.toDate()).toLocaleString('en-GB') : 'Just now';
+      
+      html += `
+        <div class="item" style="border-left: 5px solid #ffeb3b; background: rgba(255,235,59,0.05);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b style="color:#fff;">📧 ${tx.userEmail}</b>
+            <span style="background:#ffeb3b; color:#000; padding:2px 8px; border-radius:8px; font-weight:900;">₹${tx.amount || 'PAY'}</span>
+          </div>
+          <div style="margin: 10px 0; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px;">
+            <div style="font-size:12px; color:#aaa;">UTR / Ref Number:</div>
+            <div style="font-size:16px; color:#6dff9a; font-weight:bold; letter-spacing:1px;">${tx.transactionId}</div>
+          </div>
+          <div style="font-size:11px; color:#888;">📅 ${time} | Product: ${tx.productId}</div>
+          <div class="row" style="margin-top:15px;">
+            <button class="manual-give" onclick="verifyTransaction('${doc.id}', '${tx.userId}', '${tx.productId}')" style="background:#6dff9a !important; font-weight:bold;">✅ APPROVE</button>
+            <button class="danger" onclick="rejectTransaction('${doc.id}')" style="font-weight:bold;">❌ REJECT</button>
+          </div>
+        </div>
+      `;
+    });
+    listDiv.innerHTML = html;
+  } catch (err) {
+    console.error(err);
+    listDiv.innerHTML = '<div class="bad">❌ Error: Use Chrome Console to check if Indexing is needed.</div>';
+  }
+}
+
+
+// 🔥 FIXED VERIFY TRANSACTION WITH SOLD OUT FEATURE
+// 🔥 SMART VERIFY: User delete hone par bhi kaam karega
+
+async function verifyTransaction(txId, userId, productId) {
+  if (!confirm('Verify this payment and grant access?')) return;
+  
+  try {
+    // 1. Pehle check karein ki kya user Firestore mein maujood hai?
+    const userDoc = await db.collection('users').doc(userId).get();
+    const batch = db.batch();
+
+    if (!userDoc.exists) {
+      console.log("User record missing, recreating during verification...");
+      const txDoc = await db.collection('pendingTransactions').doc(txId).get();
+      const txData = txDoc.data();
+      
+      batch.set(db.collection('users').doc(userId), {
+        email: txData.userEmail || "recovered_user@store.com",
+        role: 'user',
+        purchasedProducts: [productId], 
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      batch.update(db.collection('users').doc(userId), { 
+        purchasedProducts: firebase.firestore.FieldValue.arrayUnion(productId) 
+      });
+    }
+
+    // 2. Transaction status update karein
+    batch.update(db.collection('pendingTransactions').doc(txId), { 
+      status: 'verified', 
+      verifiedAt: firebase.firestore.FieldValue.serverTimestamp() 
+    });
+    
+    // 3. Product ko sold out mark karein
+    batch.update(db.collection('products').doc(productId), { 
+      isSoldOut: true,
+      soldAt: firebase.firestore.FieldValue.serverTimestamp(),
+      soldTo: userId
+    });
+    
+    // Batch commit (Database update)
+    await batch.commit();
+
+    // 🔥 NAYA: SOUND LOGIC 🔥
+    const sound = document.getElementById("successPing");
+    if (sound) {
+      sound.currentTime = 0; // Har baar shuru se bajne ke liye
+      sound.play().catch(e => console.log("Sound error:", e));
+    }
+
+    notify('✅ Approved! User data recovered and verified.', 'success');
+    loadPendingTransactions();
+
+  } catch (err) {
+    console.error("Verification error:", err);
+    notify('❌ Verification failed: ' + err.message, 'error');
+  }
+}
+
+
+
+async function rejectTransaction(txId) {
+  if (!confirm('Reject this transaction?')) return;
+  
+  try {
+    await db.collection('pendingTransactions').doc(txId).update({
+      status: 'rejected',
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    notify('❌Transaction rejected!', 'success');
+    loadPendingTransactions();
+  } catch (err) {
+    notify('❌ Reject failed!', 'error');
+  }
+}
+
+
+
+
+// 🔥 FIXED PRODUCTS LIST WITH SOLD OUT CHECK
+// --- NEW SORTING LOGIC FOR PRODUCTS ---
+async function renderProductsList() {
+  try {
+    const snapshot = await db.collection('products').get();
+    allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    if (allProducts.length === 0) {
+      document.getElementById('productList').innerHTML = '<p style="text-align:center; opacity:0.5;">No products available</p>';
+      return;
+    }
+
+    // 1. Smart Sorting: Available upar, Sold niche
+    allProducts.sort((a, b) => {
+      if (a.isSoldOut !== b.isSoldOut) return a.isSoldOut ? 1 : -1;
+      return (b.submittedAt?.toMillis() || 0) - (a.submittedAt?.toMillis() || 0);
+    });
+
+    let html = '';
+    allProducts.forEach(p => {
+      const isPurchased = userProducts.includes(p.id);
+      const isSoldOut = p.isSoldOut || false;
+      
+      // ✅ FIX: Listed Date (Undefined handle karne ke liye)
+      let listedDate = "Recently";
+      if (p.submittedAt && p.submittedAt.toDate) {
+          listedDate = new Date(p.submittedAt.toDate()).toLocaleDateString('en-GB');
+      }
+      
+      if (isSoldOut) {
+        // ✅ FIX: Sold Date (Agar string na mile toh timestamp check karega)
+        let displaySoldDate = "Recently";
+        if (p.soldDate) {
+            displaySoldDate = p.soldDate; 
+        } else if (p.soldAt && p.soldAt.toDate) {
+            displaySoldDate = new Date(p.soldAt.toDate()).toLocaleDateString('en-GB');
+        }
+
+        // --- SOLD OUT LOOK: Purana simple design ---
+        html += `
+          <div class="item" style="opacity: 0.5; border-left: 4px solid #ff4444; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 10px 15px; border-radius: 12px;">
+            <div style="display:flex; justify-content:space-between; align-items: center;">
+               <b style="color: #bbb;">${p.name}</b>
+               <small style="color:#ff4444; font-weight:bold; letter-spacing: 1px;">SOLD OUT</small>
+            </div>
+            <small style="color: #777;">Price: ₹${p.price} | 📅 Sold on: ${displaySoldDate}</small>
+          </div>`;
+
+      } else if (isPurchased) {
+        // --- PURCHASED LOOK ---
+        html += `
+          <div class="item" style="border-left: 4px solid #6dff9a; background: rgba(109,255,154,0.05); margin-bottom: 12px; border-radius: 12px;">
+            <b style="color: #6dff9a;">${p.name}</b> <small style="color: #6dff9a; opacity: 0.8;">(Purchased ✅)</small><br>
+            <button class="action" onclick="showSection('mykeys')" style="padding:6px 12px; font-size:11px; margin-top:8px; border-radius: 8px;">View My Key</button>
+          </div>`;
+
+      } else {
+        // --- AVAILABLE LOOK: Naya premium design ---
+        html += `
+          <div style="
+            background: linear-gradient(145deg, #232a5e, #15193a);
+            border: 1px solid rgba(109, 124, 255, 0.5);
+            border-radius: 22px;
+            padding: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+          ">
+            <div style="position:absolute; top:-10px; right:-10px; width:60px; height:60px; background:rgba(109,124,255,0.15); filter:blur(20px); border-radius:50%;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+              <div>
+                <h3 style="margin: 0; font-size: 17px; color: #fff; font-weight: 700;">${p.name}</h3>
+                <div style="margin-top: 4px;">
+                  <span style="font-size: 9px; color: #6dff9a; background: rgba(109,255,154,0.1); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(109,255,154,0.2); font-weight: bold;">⚡ HIGH QUALITY</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: #6dff9a; font-size: 22px; font-weight: 900;">₹${p.price}</div>
+                <div style="font-size: 10px; color: #a5b1ff; opacity: 0.6;">Listed: ${listedDate}</div>
+              </div>
+            </div>
+            <button onclick="openQRModal(${p.price}, '${p.id}')" style="
+              width: 100%; padding: 12px; border-radius: 14px; border: none; 
+              background: linear-gradient(90deg, #6d7cff, #8e99ff); color: #fff; 
+              font-weight: 800; font-size: 14px; cursor: pointer;
+              box-shadow: 0 5px 15px rgba(109,124,255,0.3);
+            ">
+              💳 BUY THIS ACCOUNT
+            </button>
+          </div>
+        `;
+      }
+    });
+    
+    document.getElementById('productList').innerHTML = html;
+  } catch (err) {
+    console.error("Render Error:", err);
+  }
+}
+
+
+// 🔥 FIXED MY KEYS
+async function renderMyKeys() {
+  try {
+    const keyList = document.getElementById('myKeyList');
+    keyList.innerHTML = '<div class="item" style="text-align:center;">⌛Loading your history...</div>';
+    
+    // 1. User ki saari transaction history fetch karein (Pending, Rejected, Verified)
+    const txSnapshot = await db.collection('pendingTransactions')
+      .where('userId', '==', currentUser.uid)
+      .get();
+
+    // 2. Products data fetch karein credentials dikhane ke liye
+    const productsSnapshot = await db.collection('products').get();
+    const allProducts = productsSnapshot.docs.reduce((acc, doc) => {
+      acc[doc.id] = { id: doc.id, ...doc.data() };
+      return acc;
+    }, {});
+
+    if (txSnapshot.empty) {
+      keyList.innerHTML = '<div class="item" style="text-align:center;"><p class="bad">No purchase history found.</p></div>';
+      return;
+    }
+
+    // 3. Transactions ko Date ke hisaab se Sort karein (Latest First)
+    const sortedTransactions = txSnapshot.docs.sort((a, b) => 
+      (b.data().submittedAt?.toMillis() || 0) - (a.data().submittedAt?.toMillis() || 0)
+    );
+
+    let html = '<h4 style="color:#ffeb3b; margin: 10px 0 15px 0;">📅Order History (Date Wise)</h4>';
+
+    sortedTransactions.forEach(doc => {
+      const tx = doc.data();
+      const subDate = tx.submittedAt ? new Date(tx.submittedAt.toDate()).toLocaleString('en-GB') : 'Processing...';
+      const productId = tx.productId;
+      const productInfo = allProducts[productId];
+
+      // Status ke hisaab se UI design set karein
+      let cardStyle = "border-left: 4px solid #ffeb3b; background: rgba(255,235,59,0.05);";
+      let statusLabel = "Pending ⏳";
+      let statusColor = "#ffeb3b";
+
+      if (tx.status === 'rejected') {
+        cardStyle = "border-left: 4px solid #ff4444; background: rgba(255,68,68,0.05);";
+        statusLabel = "Rejected❌";
+        statusColor = "#ff4444";
+      } else if (tx.status === 'verified') {
+        cardStyle = "border-left: 4px solid #6dff9a; background: rgba(109,255,154,0.05);";
+        statusLabel = "Verified & Added ✅";
+        statusColor = "#6dff9a";
+      }
+
+      // Base Transaction Card
+      html += `
+        <div class="item" style="${cardStyle} margin-bottom:15px; padding:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
+            <b style="font-size:14px; color:#fff;">ID: ${productId}</b>
+            <span style="font-size:12px; font-weight:bold; color:${statusColor};">${statusLabel}</span>
+          </div>
+          <div style="font-size:12px; opacity:0.8; line-height:1.6;">
+            📅 <b>Submitted:</b> ${subDate}<br>
+            💳 <b>UTR:</b> ${tx.transactionId}
+          </div>
+      `;
+
+      // Agar Verified hai toh credentials (ID/Key) niche hi dikhayenge
+      if (tx.status === 'verified' && productInfo) {
+        html += `
+          <div class="product-creds" style="margin-top:12px; background:rgba(0,0,0,0.2); border:1px solid #6dff9a;">
+            <div style="margin-bottom:8px;">
+              <b style="color:#6dff9a;">🆔Login ID:</b> <span style="word-break:break-all;">${productInfo.loginId}</span>
+              <button class="copy-btn" style="width:100%; margin-top:5px; padding:5px;" onclick="copyToClipboard('${productInfo.loginId}', this)">Copy ID</button>
+            </div>
+            ${productInfo.key ? `
+            <div>
+              <b style="color:#6dff9a;">🔑Password:</b> <span>${productInfo.key}</span>
+              <button class="copy-btn" style="width:100%; margin-top:5px; padding:5px;" onclick="copyToClipboard('${productInfo.key}', this)">Copy Key</button>
+            </div>` : ''}
+          </div>
+        `;
+      }
+      
+      html += `</div>`; // Closing transaction card
+    });
+
+    keyList.innerHTML = html;
+  } catch (err) {
+    console.error(err);
+    document.getElementById('myKeyList').innerHTML = '<div class="item"><p class="bad">Error loading history. Please refresh.</p></div>';
+  }
+}
+
+
+
+// 🔥 FIXED LOAD USER DATA
+// 1. Photo Update Function
+// 🔥 FIXED: Photo Update & Refresh
+async function updateProfilePhoto() {
+  const url = document.getElementById('photoUrlInput').value.trim();
+  if(!url) return notify('❌ Please paste an Image URL!', 'error');
+  
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ 
+      profilePhoto: url 
+    });
+    notify('✅Profile Photo Updated!', 'success');
+    document.getElementById('photoUrlInput').value = '';
+    
+    // Turant UI update karne ke liye dobara load karein
+    await loadUserData(); 
+  } catch(err) { 
+    notify('❌ Update failed!', 'error'); 
+  }
+}
+
+// 🔥 FIXED: Sidebar Photo Rendering
+async function loadUserData() {
+  try {
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    let photoUrl = "";
+    
+    if(userDoc.exists) {
+      const data = userDoc.data();
+      userRole = data.role || 'user';
+      userProducts = data.purchasedProducts || [];
+      photoUrl = data.profilePhoto || ""; 
+    }
+    
+    const userEmail = currentUser.email;
+    const sideAvatar = document.getElementById('sideAvatar');
+
+    // --- PHOTO DISPLAY LOGIC ---
+    if(photoUrl && photoUrl !== "") {
+      // Agar database mein photo link hai toh <img> tag dalo
+      sideAvatar.innerHTML = `<img src="${photoUrl}" onerror="this.src='https://ui-avatars.com/api/?name=${userEmail}&background=6d7cff&color=fff'">`;
+    } else {
+      // Agar photo nahi hai toh Email ka pehla letter
+      sideAvatar.innerHTML = `<span style="font-size:20px; font-weight:bold; color:white;">${userEmail.charAt(0).toUpperCase()}</span>`;
+    }
+
+    // Sidebar Name & Role
+    let namePart = userEmail.split('@')[0].toUpperCase();
+    if(namePart.length > 10) namePart = namePart.substring(0, 8) + "..";
+    document.getElementById('sideName').textContent = namePart;
+    document.getElementById('sideRole').textContent = userRole === 'admin' ? '👑Administrator' : 'Verified User✅';
+
+    // Dashboard Stats
+    document.getElementById('userInfo').textContent = userEmail;
+    document.getElementById('roleBadge').textContent = userRole.toUpperCase();
+
+    const prodSnapshot = await db.collection('products').get();
+    const availableOnly = prodSnapshot.docs.filter(p => !p.data().isSoldOut).length;
+    
+    document.getElementById('totalProducts').textContent = availableOnly; 
+    document.getElementById('userKeys').textContent = userProducts.length;
+
+    if(userRole === 'admin') {
+      document.getElementById('adminSection').classList.remove('hidden');
+      document.getElementById('userSection').classList.add('hidden');
+    }
+  } catch(err) { 
+    console.error("Profile Load Error:", err); 
+  }
+}
+
+
+
+
+// ==========================================
+//🔥 ALL OTHER FUNCTIONS (UNCHANGED BUT WORKING)
+// ==========================================
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const menuBtn = document.getElementById('menuBtn');
+  if (sidebar.classList.contains('open')) {
+    closeSidebar();
+  } else {
+    openSidebar();
+  }
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show'); // Overlay dikhao
+  document.getElementById('menuBtn').classList.add('hidden');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show'); // Overlay chupao
+  document.getElementById('menuBtn').classList.remove('hidden');
+}
+
+
+function showSection(id, fromNav = false) {
+  closeSidebar();
+  document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  
+  if (fromNav && event?.target) {
+    document.querySelectorAll('.nav-active').forEach(btn => btn.classList.remove('nav-active'));
+    event.target.classList.add('nav-active');
+  }
+  
+  if(id === 'products') renderProductsList();
+  if(id === 'mykeys') renderMyKeys();
+  if(id === 'manageUsers') loadUserManagement();
+  if(id === 'manageProducts') loadProductManagement();
+  if(id === 'verifyTransactions') loadPendingTransactions();
+}
+
+function notify(msg, type='success'){
+  const n = document.getElementById("notify");
+  n.textContent = msg;
+  n.style.background = type==='success' ? '#6dff9a' : '#ff7b7b';
+  n.style.display = "block";
+  setTimeout(()=>n.style.display = "none", 4000);
+}
+
+function showBroadcast(title, message) {
+  document.getElementById('broadcastTitle').textContent = title;
+  document.getElementById('broadcastMessage').textContent = message;
+  document.getElementById('broadcastPopup').classList.add('show');
+}
+
+function closeBroadcast() {
+  document.getElementById('broadcastPopup').classList.remove('show');
+}
+
+
+
+
+
+
+
+
+function showLoginType(type) {
+  ['userLogin','adminLogin','userSignup','userForgot'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById(type === 'user' ? 'userLogin' : 'adminLogin').classList.remove('hidden');
+}
+
+async function userLogin() {
+  try {
+    await auth.signInWithEmailAndPassword(
+      document.getElementById('userEmail').value, 
+      document.getElementById('userPassword').value
+    );
+  } catch(err) {
+    document.getElementById('msg').textContent = err.message;
+    document.getElementById('msg').className = 'bad';
+  }
+}
+
+async function adminLogin() {
+  try {
+    await auth.signInWithEmailAndPassword(
+      document.getElementById('adminEmail').value, 
+      document.getElementById('adminPassword').value
+    );
+  } catch(err) {
+    document.getElementById('msg').textContent = 'Admin login failed!';
+    document.getElementById('msg').className = 'bad';
+  }
+}
+
+async function userSignup() {
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(
+      document.getElementById('signupEmail').value, 
+      document.getElementById('signupPassword').value
+    );
+    await db.collection('users').doc(userCredential.user.uid).set({
+      email: document.getElementById('signupEmail').value,
+      role: 'user',
+      purchasedProducts: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    notify('Account created successfully!');
+  } catch(err) {
+    document.getElementById('msg').textContent = err.message;
+    document.getElementById('msg').className = 'bad';
+  }
+}
+
+async function forgotPassword() {
+  try {
+    await auth.sendPasswordResetEmail(document.getElementById('forgotEmail').value);
+    notify('Reset email sent!');
+  } catch(err) {
+    document.getElementById('msg').textContent = err.message;
+    document.getElementById('msg').className = 'bad';
+  }
+}
+async function updateUserPassword() {
+  const currPass = document.getElementById('currPass').value;
+  const newPass = document.getElementById('newPass').value;
+  const reNewPass = document.getElementById('reNewPass').value;
+  const user = firebase.auth().currentUser;
+
+  if (!currPass || !newPass || !reNewPass) return notify('❌ Fill all fields!', 'error');
+  if (newPass !== reNewPass) return notify('❌ Passwords do not match!', 'error');
+  if (newPass.length < 6) return notify('❌ Min 6 characters required!', 'error');
+
+  try {
+    // Re-verify the user
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, currPass);
+    await user.reauthenticateWithCredential(credential);
+
+    // Update to new password
+    await user.updatePassword(newPass);
+
+    notify('✅ Password Changed!', 'success');
+    
+    // Clear the form
+    document.getElementById('currPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('reNewPass').value = '';
+
+  } catch (error) {
+    if (error.code === 'auth/wrong-password') {
+      notify('❌ Current password wrong!', 'error');
+    } else {
+      notify('❌ Failed: ' + error.message, 'error');
+    }
+  }
+}
+
+
+// ==========================================
+// -- glass effects 
+// ==========================================
+function toggleGlassMode() {
+    const isChecked = document.getElementById('glassToggle').checked;
+    
+    if (isChecked) {
+        document.body.classList.add('glass-mode');
+        localStorage.setItem('theme', 'glass'); // Save preference
+    } else {
+        document.body.classList.remove('glass-mode');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Page load par check karein ki user ne pehle kya select kiya tha
+window.onload = function() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'glass') {
+        document.getElementById('glassToggle').checked = true;
+        document.body.classList.add('glass-mode');
+    }
+};
+
+// ==========================================
+// -- glass effects end
+// ==========================================
+
+
+
+// 1. Logout Function
+function logout() {
+  auth.signOut().then(() => {
+    location.reload(); 
+  }).catch((err) => {
+    console.error("Logout Error:", err);
+  });
+  closeSidebar();
+}
+
+// 🔥 MODIFIED: Auto-recreate user if deleted from Firestore
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUser = user;
+    
+    // Check if user exists in Firestore
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    
+    if (!userDoc.exists) {
+      // Agar user Firestore me nahi hai (aapne delete kiya tha), toh use dobara "user" role ke sath create karo
+      console.log("Re-creating missing user record...");
+      await db.collection('users').doc(user.uid).set({
+        email: user.email,
+        role: 'user',
+        purchasedProducts: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    await loadUserData(); // Dashboard data load karein
+    unlockApp();          // App open karein
+    checkBroadcasts();    
+  } else {
+    showLockScreen();     
+  }
+});
+
+
+// 3. App Unlock logic
+function unlockApp() {
+  document.body.classList.remove('login-mode');
+  document.getElementById('lock').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  showSection('dashboard');
+}
+
+// 4. Lock Screen logic
+function showLockScreen() {
+  document.body.classList.add('login-mode');
+  document.getElementById('lock').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+  showLoginType('user');
+}
+
+// 5. Broadcast Popup Band karne ka function
+function closeBroadcast() {
+  const popup = document.getElementById('broadcastPopup');
+  popup.style.display = 'none';
+  popup.classList.remove('show');
+}
+
+// 6. User Signup/Forgot Password toggles
+function showUserSignup() {
+  document.getElementById('userSignup').classList.remove('hidden');
+  document.getElementById('userLogin').classList.add('hidden');
+}
+
+function showUserForgot() {
+  document.getElementById('userForgot').classList.remove('hidden');
+  document.getElementById('userLogin').classList.add('hidden');
+}
+
+
+
+// ==========================================
+// 2.--- MODAL FUNCTIONS (FIXED) --- 
+// ==========================================
+
+function handleUPIPayment() {
+    const upiId = "igrishu2024@okaxis"; 
+    const storeName = "Xiaomi Store";
+
+    // Debugging ke liye alert (Check karne ke liye ki function chal raha hai)
+    console.log("Paying Amount:", currentProductPrice);
+
+    if (!currentProductPrice || currentProductPrice <= 0) {
+        alert("❌Error: Price zero hai! Please product ko phir se select karein.");
+        return;
+    }
+
+    // UPI Link
+    const upiLink = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(storeName)}&am=${currentProductPrice}&cu=INR`;
+
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        // Mobile par app kholne ki koshish karega
+        window.location.href = upiLink;
+        
+        setTimeout(() => {
+    // Alert ki jagah Toast dikhayega
+    var x = document.getElementById("toast");
+    x.className = "show";
+    
+    // 5 second baad toast apne aap gayab ho jayega
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 4000);
+}, 1000);
+
+    } else {
+        alert("Desktop par UPI Apps nahi khulte. Please phone se QR scan karein.");
+    }
+}
+
+
+// --- MODAL FUNCTIONS (FIXED) ---
+
+// Ye function 'Buy Now' click karne par modal kholega
+function openQRModal(price, productId) {
+    currentProductPrice = parseFloat(price);
+    currentQRProduct = productId;
+    
+    const modal = document.getElementById('qrModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Input box ko khali kar dega naye transaction ke liye
+        document.getElementById('transactionId').value = '';
+    }
+}
+
+// Ye 'X' button click karne par modal band karega
+function closeQRModal() {
+    const modal = document.getElementById('qrModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Ye Submit button ke liye hai (Firebase mein data jayega)
+
+async function submitTransaction() {
+    const txInput = document.getElementById('transactionId');
+    const txId = txInput ? txInput.value.trim() : "";
+    const sound = document.getElementById("successPing");
+
+    if (!currentQRProduct) {
+        alert("❌ Error: First Select Xaiomi Account ! then click Buy now");
+        return;
+    }
+    if (!txId) {
+        alert("❌ UTR / Transaction ID daalna zaroori hai.");
+        return;
+    }
+
+    try {
+        // Firebase Firestore mein entry
+        await db.collection('pendingTransactions').add({
+            userId: auth.currentUser.uid,
+            userEmail: auth.currentUser.email,
+            transactionId: txId,
+            productId: currentQRProduct,
+            amount: currentProductPrice,
+            status: 'pending',
+            submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 🔥 Sound Play Karo
+        if (sound) {
+            sound.currentTime = 0; 
+            sound.play().catch(e => console.log("Sound block:", e));
+        }
+
+        // 📱 Mobile Vibration (200ms)
+        if (navigator.vibrate) {
+            navigator.vibrate(200);
+        }
+
+        alert("✅ Success! Admin 5m mein aprove kar dega");
+        closeQRModal(); 
+        showSection('mykeys');
+
+    } catch (error) {
+        alert("❌ Error: " + error.message);
+    }
+}
+
+
+// ==========================================
+// 2.--- MODAL FUNCTIONS (FIXED) --- END
+// ==========================================
+
+
+
+
+// ==========================================
+//--- STEP 3: TELEGRAM NOTIFICATION FUNCTION ---
+// ==========================================
+
+async function sendTelegramAlert(msg) {
+    const token = "7955185832:AAH4_TJyi_P78BFkHnBl32d3CgD4sdZ7Gxo"; // Apna Bot Token yaha dalo
+    const chatId = "6931353821";   // Apni Chat ID yaha dalo
+    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=HTML`;
+    
+    try {
+        await fetch(url);
+    } catch(err) {
+        console.log("Telegram alert failed", err);
+    }
+}
+
+// --- STEP 6: FIREWORKS (CONFETTI) FUNCTION ---
+function launchFireworks() {
+    var duration = 3 * 1000;
+    var end = Date.now() + duration;
+
+    (function frame() {
+        confetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#6d7cff', '#6dff9a', '#ffffff']
+        });
+        confetti({
+            particleCount: 5,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#6d7cff', '#6dff9a', '#ffffff']
+        });
+
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    }());
+}
+
+// --- UPDATED SUBMIT FUNCTION ---
+async function submitTransaction() {
+    const txInput = document.getElementById('transactionId');
+    const txId = txInput ? txInput.value.trim() : "";
+    const sound = document.getElementById("successPing");
+
+    if (!currentQRProduct || !txId) {
+        alert("❌ Error: Missing details!");
+        return;
+    }
+
+    try {
+        await db.collection('pendingTransactions').add({
+            userId: auth.currentUser.uid,
+            userEmail: auth.currentUser.email,
+            transactionId: txId,
+            productId: currentQRProduct,
+            amount: currentProductPrice,
+            status: 'pending',
+            submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 📢 Telegram Alert (Idea 3)
+        const alertMsg = `🚀 <b>New Order!</b>\n\n📧 Email: ${auth.currentUser.email}\n💳 UTR: ${txId}\n📦 Product: ${currentQRProduct}\n💰 Amount: ₹${currentProductPrice}`;
+        sendTelegramAlert(alertMsg);
+
+        // 🎆 Fireworks (Idea 6)
+        launchFireworks();
+
+        // 📱 Sound & Vibration
+        if (sound) { sound.currentTime = 0; sound.play(); }
+        if (navigator.vibrate) { navigator.vibrate(200); }
+
+        alert("✅ Success! Admin 5m mein aprove kar dega");
+        closeQRModal(); 
+        showSection('mykeys');
+
+    } catch (error) {
+        alert("❌ Error: " + error.message);
+    }
+}
+
+// ==========================================
+// --- STEP 3: TELEGRAM NOTIFICATION FUNCTION --- End
+// ==========================================
+
+
+
+
+
+// ==========================================
+// --- YEH LOGIN PAGE STATS KA CODE HAI ---
+// ==========================================
+
+async function fetchPublicStats() {
+  try {
+    // Bina login kiye products ka count lene ke liye
+    const snapshot = await db.collection('products').get();
+    let available = 0;
+    let sold = 0;
+
+    snapshot.forEach(doc => {
+      if (doc.data().isSoldOut === true) {
+        sold++;
+      } else {
+        available++;
+      }
+    });
+
+    // Dashboard IDs ke saath confusion na ho isliye checks lagaye hain
+    const stockEl = document.getElementById('loginStock');
+    const soldEl = document.getElementById('loginSold');
+    
+    if(stockEl) stockEl.textContent = available;
+    if(soldEl) soldEl.textContent = sold;
+    
+  } catch (err) {
+    console.error("Public Stats Error:", err);
+  }
+}
+
+// Page load hote hi ise turant chalana hai
+fetchPublicStats();
+
+// Har 30 second mein automatic update (Optional)
+setInterval(fetchPublicStats, 30000); 
+
+// ==========================================
+// --- YEH LOGIN PAGE STATS KA CODE HAI ---END
+// ==========================================
+
+
+
+// Admin functions
+async function giveManualAccess() {
+  if (userRole !== 'admin') {
+    notify('❌Admin only!', 'error');
+    return;
+  }
+  const userEmail = document.getElementById('manualUserEmail').value.trim();
+  const productId = document.getElementById('manualProductId').value.trim();
+  if (!userEmail || !productId) {
+    notify('❌Enter both email & product ID!', 'error');
+    return;
+  }
+  try {
+    const usersSnapshot = await db.collection('users').where('email', '==', userEmail).get();
+    if (usersSnapshot.empty) {
+      notify('❌User not found!', 'error');
+      return;
+    }
+    const userDoc = usersSnapshot.docs[0];
+    await db.collection('users').doc(userDoc.id).update({
+      purchasedProducts: firebase.firestore.FieldValue.arrayUnion(productId)
+    });
+    // Mark product as sold out
+    await db.collection('products').doc(productId).update({
+      isSoldOut: true,
+      soldAt: firebase.firestore.FieldValue.serverTimestamp(),
+      soldTo: userDoc.id
+    });
+    notify(`✅ Access granted to ${userEmail}! Product marked SOLD OUT`, 'success');
+    document.getElementById('manualUserEmail').value = '';
+    document.getElementById('manualProductId').value = '';
+    renderProductsList();
+  } catch (err) {
+    notify('❌ Failed to grant access!', 'error');
+  }
+}
+
+// 🔥 PERFECTLY FIXED - NO MORE "Error loading users"
+async function loadUserManagement() {
+  if (userRole !== 'admin') return notify('❌Admin only!', 'error');
+  
+  try {
+    document.getElementById('userManagementList').innerHTML = 'Loading users...';
+    const snapshot = await db.collection('users').get();
+    
+    // Sort: New users first
+    const sortedUsers = snapshot.docs.sort((a, b) => {
+      const dateA = a.data().createdAt?.toMillis() || 0;
+      const dateB = b.data().createdAt?.toMillis() || 0;
+      return dateB - dateA;
+    });
+    
+    let html = '';
+    sortedUsers.forEach(doc => {
+      const u = doc.data();
+      const regDate = u.createdAt ? new Date(u.createdAt.toDate()).toLocaleDateString('en-GB') : 'N/A';
+      // Purchase Count nikalne ke liye
+      const purchaseCount = u.purchasedProducts ? u.purchasedProducts.length : 0;
+      const userRoleColor = u.role === 'admin' ? '#ff6b35' : '#6dff9a';
+      
+      html += `
+        <div class="item" style="
+          background: linear-gradient(145deg, #1e244a, #15193a);
+          border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 16px;
+          padding: 12px 15px;
+          margin: 10px 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        ">
+          <div style="flex: 1; overflow: hidden; margin-right: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+              <b style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;">
+                ${u.email}
+              </b>
+              <span style="color: ${userRoleColor}; font-size: 9px; font-weight: 800; text-transform: uppercase;">
+                [${u.role}]
+              </span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <small style="font-size: 10px; color: #a5b1ff; opacity: 0.8;">📅 Registered: ${regDate}</small>
+              <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                <span style="font-size: 10px; background: rgba(109,124,255,0.2); color: #6d7cff; padding: 2px 8px; border-radius: 20px; font-weight: bold; border: 1px solid rgba(109,124,255,0.3);">
+                  🛒 Purchased: ${purchaseCount}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 8px;">
+            <button class="manual-verify" onclick="viewUserHistory('${doc.id}', '${u.email}')" 
+              style="width: 38px; height: 38px; min-width: 38px; border-radius: 12px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; background: #ffeb3b; border: none;" title="History">
+              👁️
+            </button>
+            <button class="danger" onclick="deleteUser('${doc.id}')" 
+              style="width: 38px; height: 38px; min-width: 38px; border-radius: 12px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; background: #ff4444; border: none;" title="Delete">
+              🗑️
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    document.getElementById('userManagementList').innerHTML = html;
+    document.getElementById('usersCount').textContent = snapshot.size;
+  } catch(err) {
+    notify('❌Error loading users', 'error');
+  }
+}
+
+
+// ==========================================
+// --- User Ka History View Karne Ke liye---
+// ==========================================
+
+async function viewUserHistory(userId, userEmail) {
+  try {
+    // User details fetch karein registration date ke liye
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+    const registrationDate = userData.createdAt ? 
+      new Date(userData.createdAt.toDate()).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 
+      'Unknown';
+
+    const txSnapshot = await db.collection('pendingTransactions')
+      .where('userId', '==', userId)
+      .get();
+
+    let html = `<h3>📜History for: ${userEmail}</h3>`;
+    // Registration Date Header
+    html += `
+      <div style="background:rgba(109,124,255,0.1); padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #6d7cff; text-align:center;">
+        <span style="color:#6dff9a; font-weight:bold;">📅 Joined On:</span> ${registrationDate}
+      </div>
+    `;
+    
+    html += `<button class="action" onclick="showSection('manageUsers')" style="margin-bottom:15px; width:100%;">⬅️ Back to Users List</button>`;
+
+    if (txSnapshot.empty) {
+      html += '<p style="text-align:center; padding:20px; color:#aaa;">No purchase history found for this user.</p>';
+    } else {
+      const sorted = txSnapshot.docs.sort((a,b) => (b.data().submittedAt?.toMillis() || 0) - (a.data().submittedAt?.toMillis() || 0));
+      
+      sorted.forEach(doc => {
+        const tx = doc.data();
+        const date = tx.submittedAt ? new Date(tx.submittedAt.toDate()).toLocaleString() : 'N/A';
+        const color = tx.status === 'verified' ? '#6dff9a' : (tx.status === 'rejected' ? '#ff4444' : '#ffeb3b');
+
+        html += `
+          <div class="item" style="border-left: 4px solid ${color};">
+            <div style="display:flex; justify-content:space-between;">
+              <b>ID: ${tx.productId}</b>
+              <b style="color:${color}">${tx.status.toUpperCase()}</b>
+            </div>
+            <small>📅 TX Date: ${date} | 💳 UTR: ${tx.transactionId}</small>
+            <div class="row">
+              <button class="danger" style="padding:5px; font-size:12px;" onclick="deleteTransaction('${doc.id}', '${userId}', '${userEmail}')">🗑️ Delete Entry</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('userManagementList').innerHTML = html;
+  } catch (err) {
+    console.error(err);
+    notify('❌ Error fetching history', 'error');
+  }
+}
+
+
+// Function to delete specific history entry
+async function deleteTransaction(txId, userId, userEmail) {
+  if(!confirm('Are you sure you want to delete this history record?')) return;
+  try {
+    await db.collection('pendingTransactions').doc(txId).delete();
+    notify('✅ History deleted!');
+    viewUserHistory(userId, userEmail); // Refresh list
+  } catch(err) {
+    notify('❌ Delete failed', 'error');
+  }
+}
+
+// 🔥 UPDATED: Admin can now see WHO bought the product
+async function loadProductManagement() {
+  try {
+    document.getElementById('productManagementList').innerHTML = 'Loading products...';
+    
+    const [prodSnapshot, userSnapshot] = await Promise.all([
+      db.collection('products').get(),
+      db.collection('users').get()
+    ]);
+
+    const userMap = {};
+    userSnapshot.forEach(doc => { userMap[doc.id] = doc.data().email; });
+
+    let products = prodSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    if(products.length === 0) {
+      document.getElementById('productManagementList').innerHTML = '<p style="text-align:center; opacity:0.5;">No products found</p>';
+      return;
+    }
+
+    // 🔥 SORTING LOGIC: Available upar (Active), Sold niche
+    products.sort((a, b) => {
+      if (a.isSoldOut !== b.isSoldOut) {
+        return a.isSoldOut ? 1 : -1; // false (Active) pehle, true (Sold) baad mein
+      }
+      // Agar dono same status ke hain toh naya wala upar
+      return (b.submittedAt?.toMillis() || 0) - (a.submittedAt?.toMillis() || 0);
+    });
+
+    let html = '';
+    products.forEach(p => {
+      const isSold = p.isSoldOut || false;
+      
+      // Date Formatting
+      let dateStr = "New";
+      if (p.submittedAt) {
+          const d = p.submittedAt.toDate();
+          dateStr = d.toLocaleDateString('en-GB') + " " + d.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: true});
+      }
+
+      const buyerEmail = isSold && p.soldTo ? (userMap[p.soldTo] || "Unknown User") : null;
+
+      // --- PREMIUM SIMPLE DESIGN ---
+      html += `
+        <div style="
+          background: #1a1f3c; 
+          border: 1px solid ${isSold ? 'rgba(255, 68, 68, 0.2)' : 'rgba(109, 255, 154, 0.2)'};
+          border-radius: 20px;
+          padding: 20px;
+          margin-bottom: 15px;
+          position: relative;
+        ">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h3 style="margin: 0; font-size: 16px; color: #fff; letter-spacing: 0.5px;">${p.name}</h3>
+              <div style="font-size: 10px; color: #6d7cff; margin-top: 4px; opacity: 0.8;">ID: ${p.id}</div>
+            </div>
+            <div style="
+              background: ${isSold ? 'rgba(255, 68, 68, 0.1)' : 'rgba(109, 255, 154, 0.1)'};
+              color: ${isSold ? '#ff4444' : '#6dff9a'};
+              padding: 5px 12px;
+              border-radius: 20px;
+              font-size: 9px;
+              font-weight: 800;
+              border: 1px solid ${isSold ? 'rgba(255, 68, 68, 0.2)' : 'rgba(109, 255, 154, 0.2)'};
+              display: flex; align-items: center; gap: 4px;
+            ">
+              <span style="font-size: 12px;">●</span> ${isSold ? 'SOLD OUT' : 'ACTIVE'}
+            </div>
+          </div>
+
+          <div style="margin-top: 15px; display: flex; justify-content: space-between; font-size: 12px;">
+             <span style="color: #bbb;">Price: <b style="color: #6dff9a;">₹${p.price}</b></span>
+             <span style="color: #bbb;">Key: <b style="color: #ffeb3b;">${p.key || '@notset'}</b></span>
+          </div>
+          <div style="color: #555; font-size: 10px; margin-top: 6px;">📅 Added on: ${dateStr}</div>
+
+          ${isSold ? `
+            <div style="margin-top: 15px; padding: 12px; background: rgba(255,68,68,0.05); border-radius: 12px; border: 1px dashed rgba(255,68,68,0.3);">
+              <div style="color: #ff8a8a; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">👤 BOUGHT BY</div>
+              <div style="color: #fff; font-size: 12px; opacity: 0.9;">${buyerEmail}</div>
+            </div>
+          ` : ''}
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px;">
+            <button onclick="editProduct('${p.id}','${p.name}','${p.loginId}','${p.key}',${p.price})" style="
+              background: transparent;
+              color: #6d7cff;
+              border: 1px solid rgba(109, 124, 255, 0.4);
+              padding: 10px;
+              border-radius: 12px;
+              font-size: 13px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex; align-items: center; justify-content: center; gap: 6px;
+            ">✏️ Edit</button>
+            
+            <button onclick="deleteProduct('${p.id}')" style="
+              background: transparent;
+              color: #ff4444;
+              border: 1px solid rgba(255, 68, 68, 0.4);
+              padding: 10px;
+              border-radius: 12px;
+              font-size: 13px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex; align-items: center; justify-content: center; gap: 6px;
+            ">🗑️ Delete</button>
+          </div>
+        </div>`;
+    });
+    
+    document.getElementById('productManagementList').innerHTML = html;
+    document.getElementById('productsCount').textContent = products.length;
+  } catch(err) {
+    console.error(err);
+    document.getElementById('productManagementList').innerHTML = '<p style="color:#ff4444; text-align:center;">Error loading list</p>';
+  }
+}
+
+
+
+
+async function addProduct() {
+  const name = document.getElementById('productName').value;
+  const accessId = document.getElementById('productAccessId').value;
+  const key = document.getElementById('productKey').value;
+  const price = parseInt(document.getElementById('productPrice').value);
+
+  if (!name || !accessId || !key || !price) {
+    return notify('Fill all fields!', 'error');
+  }
+
+  try {
+    if (editingProductId) {
+      // 🔥 Edit karte waqt bhi timestamp update hoga (Optional)
+      await db.collection('products').doc(editingProductId).update({
+        name, loginId: accessId, key, price,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp() 
+      });
+      notify('✅ Product updated!');
+      editingProductId = null;
+    } else {
+      // 🔥 Naya product add karte waqt server date
+      await db.collection('products').add({
+        name: name, 
+        loginId: accessId, 
+        key: key, 
+        price: price, 
+        isSoldOut: false,
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp() 
+      });
+      notify('✅ Product added!');
+    }
+
+    // Inputs Clear karein
+    document.getElementById('productName').value = '';
+    document.getElementById('productAccessId').value = '';
+    document.getElementById('productKey').value = '';
+    document.getElementById('productPrice').value = '';
+
+    loadProductManagement(); // Turant list refresh karein
+  } catch (err) {
+    notify('Error adding product!', 'error');
+  }
+}
+
+
+function editProduct(productId, name, accessId, key, price) {
+  editingProductId = productId;
+  document.getElementById('productName').value = name;
+  document.getElementById('productAccessId').value = accessId;
+  document.getElementById('productKey').value = key;
+  document.getElementById('productPrice').value = price;
+  showSection('addProduct');
+  notify(`Editing: ${name}`);
+}
+
+async function deleteUser(userId) {
+  if(!confirm('Delete this user?')) return;
+  try {
+    await db.collection('users').doc(userId).delete();
+    notify('✅ User deleted!');
+    loadUserManagement();
+  } catch(err) {
+    notify('Delete failed!', 'error');
+  }
+}
+
+async function deleteProduct(productId) {
+  if(!confirm('Delete this product?')) return;
+  try {
+    await db.collection('products').doc(productId).delete();
+    notify('✅ Product deleted!');
+    loadProductManagement();
+    loadUserData();
+    renderProductsList();
+  } catch(err) {
+    notify('Delete failed!', 'error');
+  }
+}
+
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // 1. Alert ya Toast dikhao
+        alert("✅ Copied to Clipboard!");
+
+        // 2. Haptic Feedback (Vibration) - Sirf Mobile par kaam karega
+        if (navigator.vibrate) {
+            navigator.vibrate(50); // 50ms ka halka vibration
+        }
+    });
+}
+
+// ==========================================
+// -- whatsapp floting 
+// ==========================================
+
+const dragElement = document.getElementById("draggableWA");
+let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+dragElement.ontouchstart = dragMouseDown; // For Mobile
+dragElement.onmousedown = dragMouseDown;  // For PC
+
+function dragMouseDown(e) {
+    e = e || window.event;
+    // e.preventDefault(); // Click handle karne ke liye ise hataya hai
+
+    // Get current position
+    if (e.type === 'touchstart') {
+        pos3 = e.touches[0].clientX;
+        pos4 = e.touches[0].clientY;
+    } else {
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+    }
+
+    document.onmouseup = closeDragElement;
+    document.ontouchend = closeDragElement;
+    
+    document.onmousemove = elementDrag;
+    document.ontouchmove = elementDrag;
+}
+
+function elementDrag(e) {
+    e = e || window.event;
+    
+    let clientX, clientY;
+    if (e.type === 'touchmove') {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+
+    // Calculate new position
+    pos1 = pos3 - clientX;
+    pos2 = pos4 - clientY;
+    pos3 = clientX;
+    pos4 = clientY;
+
+    // Set element's new position
+    let newTop = dragElement.offsetTop - pos2;
+    let newLeft = dragElement.offsetLeft - pos1;
+
+    // Screen ke bahar na jaye uske liye checks
+    if (newTop > 0 && newTop < (window.innerHeight - 50)) {
+        dragElement.style.top = newTop + "px";
+        dragElement.style.bottom = "auto";
+    }
+    if (newLeft > 0 && newLeft < (window.innerWidth - 150)) {
+        dragElement.style.left = newLeft + "px";
+        dragElement.style.right = "auto";
+    }
+}
+
+function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+    document.ontouchend = null;
+    document.ontouchmove = null;
+}
+// ==========================================
+// -- whatsapp floting end
+// ==========================================
+
+
+
+// ==========================================
+// -- Fake Sales Data
+// ==========================================
+
+const fakeSales = [
+    "Someone from Delhi just bought Xiaomi Acc-29! ⚡",
+    "New order received from Kolkata! ✅",
+    "User 'Ankit***' just unlocked a bootloader! 🔑",
+    "Someone from Punjab just paid ₹1000! 💰",
+    "Xiaomi Premium Account sold 2 mins ago! 🔥",
+    "User 'Vikram_99' just purchased Redmi Note 13 Pro Account! 📱",
+    "Someone from Mumbai just sent payment for 2 Accounts! ✅",
+    "Order verified for 'Suresh***' from Bangalore! ⚡",
+    "New sale from Hyderabad! Xiaomi Acc-25 delivered! ✅",
+    "User 'Rahul_Mi' just successfully unlocked! 🔑",
+    "Someone from Chennai just bought Premium Access! 🔥",
+    "New order from Pune! Payment of ₹1500 received! 💰",
+    "User 'Soni_***' from Jaipur just got their login! ✅",
+    "Someone from Ahmedabad just bought a Bulk Pack! ⚡",
+    "User 'Deepak_root' just unlocked Redmi 12 5G! 🔑",
+    "New sale in Lucknow! Xiaomi Acc-29 gone! 🔥",
+    "Someone from Patna just joined the Premium membership! ✅",
+    "User 'Arun_V' from Kerala just paid! Order pending! 💰",
+    "Xiaomi Acc-30 sold to 'Imran***' from Bhopal! ⚡",
+    "Someone from Surat just bought 3 Accounts at once! 🔥",
+    "User 'Pooja_***' from Odisha just unlocked her phone! 🔑",
+    "New order from Guwahati! Payment of ₹1000 verified! ✅",
+    "Someone from Chandigarh just bought the High Quality Acc! ⚡",
+    "User 'Nitin_X' from Indore just received credentials! 🔥",
+    "Order completed for 'Rohan***' from Nagpur! ✅"
+];
+function showFakeSale() {
+    const popup = document.createElement('div');
+    // CSS Styling (Glassmorphism look add kiya hai)
+    popup.style = `
+        position: fixed; bottom: 85px; left: 15px; 
+        background: rgba(30, 33, 58, 0.9); color: white;
+        padding: 14px 18px; border-radius: 16px;
+        font-size: 13px; font-weight: 500;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-left: 5px solid #6d7cff;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        z-index: 10000; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        opacity: 0; transform: translateY(20px);
+        backdrop-filter: blur(12px);
+    `;
+    
+    popup.innerText = fakeSales[Math.floor(Math.random() * fakeSales.length)];
+    document.body.appendChild(popup);
+
+    // Animation: Upar aate hue dikhega
+    setTimeout(() => { 
+        popup.style.opacity = "1"; 
+        popup.style.transform = "translateY(0)";
+    }, 100);
+
+    // Remove logic
+    setTimeout(() => {
+        popup.style.opacity = "0";
+        popup.style.transform = "translateY(-10px)";
+        setTimeout(() => { popup.remove(); }, 600);
+    }, 5000); 
+
+    // Agla popup kab aayega? (Randomly 15 se 45 sec ke beech)
+    let nextTime = Math.random() * (45000 - 15000) + 15000;
+    setTimeout(showFakeSale, nextTime);
+}
+
+// First time start karne ke liye
+setTimeout(showFakeSale, 5000); 
+
+// ==========================================
+// -- Fake Sales Data End
+// ==========================================
+
+
+
+// ==========================================
+// -- Automatic suggest 
+// ==========================================
+
+const techTips = [
+    "Tip: Use original USB cables for stable fastboot connection. 🔌",
+    "Fact: HyperOS unlocking requires your Mi Account to be active for 3 days. ⏳",
+    "Security: Always backup your data before unlocking, it will be wiped! ⚠️",
+    "Note: If UTR verification fails, wait 5 mins and try again. 🔄",
+    "Pro Tip: Keep your battery above 50% during the unlocking process. 🔋",
+    "Status: All premium accounts are 100% verified and ready. ✅"
+];
+
+function updateDashboardTip() {
+    const tipElement = document.getElementById('dynamic-tip');
+    if (tipElement) {
+        // Halka fade out effect ke liye opacity 0 karein
+        tipElement.style.opacity = 0;
+        
+        setTimeout(() => {
+            const randomTip = techTips[Math.floor(Math.random() * techTips.length)];
+            tipElement.innerText = `"${randomTip}"`;
+            // Waapas dikhane ke liye opacity 1
+            tipElement.style.opacity = 1;
+        }, 500);
+    }
+}
+
+// Fade effect ke liye CSS transition add karein
+document.getElementById('dynamic-tip').style.transition = "opacity 0.5s ease";
+
+// Har 12 second mein tip change karein
+setInterval(updateDashboardTip, 12000);
+
+// ==========================================
+// -- Automatic suggest end
+// ==========================================
+
+
+
+function editUser(userId) {
+  notify('Edit user coming soon!');
+}
