@@ -129,7 +129,7 @@ body {padding-bottom: env(safe-area-inset-bottom);}
   overflow: hidden;
 
   /* Background Wallpaper */
-  background: url('https://helproot.github.io/images/wallpaper-2.png');
+  background: url('https://helproot.github.io/img/wp-3.png');
   background-size: cover;
   background-position: center;
 }
