@@ -784,7 +784,7 @@
             }
         }
 
-        @media(min-width:768px) {
+        @media (min-width: 768px) {
             .stats-grid {
                 grid-template-columns: repeat(4, 1fr);
             }
@@ -793,10 +793,14 @@
                 flex-direction: row;
             }
 
+            /* Sidebar fixed left */
             .sidebar {
-                left: 0;
-                width: 260px;
-                z-index: 1;
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 180px !important;
+                height: 100vh !important;
+                z-index: 50 !important;
             }
 
             .sidebar-overlay {
@@ -804,27 +808,33 @@
             }
 
             #mobileBottomNav {
-                display: none;
-            }
-
-            .main {
-                padding: 10px;
-                padding-left: 295px;
-                padding-bottom: 30px;
+                display: none !important;
             }
 
             #menuBtn {
-                display: none;
+                display: none !important;
+            }
+
+            /* Main area shifts right of sidebar */
+            .main {
+                margin-left: 180px !important;
+                width: calc(100% - 180px) !important;
+                padding: 20px 24px 40px 24px !important;
+                box-sizing: border-box !important;
+                max-width: none !important;
+            }
+
+            /* Cards inside .main are centered */
+            .card {
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
             }
 
             #lock {
-                max-width: 500px;
-                margin: 50px auto;
-                height: auto;
-            }
-
-            .card {
-                max-width: 700px;
+                max-width: 460px !important;
+                margin: 50px auto !important;
+                height: auto !important;
             }
         }
 
@@ -1431,10 +1441,89 @@
             color: var(--ui-text) !important;
         }
 
-        .main {
-            width: 100% !important;
-            max-width: 560px !important;
-            margin: 0 auto !important;
+        /* Desktop: .main is right of sidebar, flex-column centers children (dashboard + settings) */
+        @media (min-width: 768px) {
+            .main {
+                width: calc(100% - 180px) !important;
+                max-width: none !important;
+                margin-left: 180px !important;
+                margin-right: 0 !important;
+                margin-top: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+
+            /* Dashboard + Settings are INSIDE .main - flex centering handles them */
+            #dashboard,
+            #settings {
+                width: 500px !important;
+                max-width: 500px !important;
+                min-width: 0 !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+                align-self: center !important;
+            }
+
+            /* Products, Mykeys, ResellerShop are OUTSIDE .main - sidebar-aware centering */
+            #products,
+            #mykeys,
+            #resellerShop {
+                position: relative !important;
+                left: auto !important;
+                width: 500px !important;
+                max-width: 500px !important;
+                min-width: 0 !important;
+                margin-left: calc(180px + (100vw - 180px - 500px) / 2) !important;
+                margin-right: auto !important;
+                margin-top: 20px !important;
+                margin-bottom: 20px !important;
+                padding: 18px 14px !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+        }
+
+        /* Mobile: everything full width, no sidebar offset */
+        @media (max-width: 767px) {
+            .main {
+                display: block !important;
+                width: 100% !important;
+                margin-left: 0 !important;
+            }
+
+            #dashboard,
+            #settings,
+            #products,
+            #mykeys,
+            #resellerShop {
+                position: static !important;
+                left: auto !important;
+                width: auto !important;
+                max-width: 100% !important;
+                margin-left: 12px !important;
+                margin-right: 12px !important;
+                margin-top: 10px !important;
+                padding: 14px 12px !important;
+                box-sizing: border-box !important;
+            }
+        }
+
+
+        /* === UNIFIED SECTION SIZING: All sections same width as dashboard === */
+        #dashboard {
+            width: 500px !important;
+            max-width: 500px !important;
+            margin: 20px auto !important;
+            box-sizing: border-box !important;
+        }
+
+        @media (max-width: 767px) {
+            #dashboard {
+                width: auto !important;
+                max-width: 100% !important;
+                margin: 10px 12px !important;
+            }
         }
 
         .card {
@@ -1444,6 +1533,7 @@
             box-shadow: var(--ui-shadow) !important;
             padding: 18px 14px !important;
         }
+
 
         button {
             border-radius: 16px !important;
@@ -1538,6 +1628,15 @@
         .whatsapp-container,
         .support-btn {
             display: none !important;
+        }
+
+        /* ===== SCROLL HIDE/SHOW NAV ===== */
+        #mobileBottomNav {
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #mobileBottomNav.nav-hidden {
+            transform: translateY(100%);
         }
 
         /* Dashboard header bar styling */
@@ -1663,50 +1762,18 @@
             </div>
 
             <div id="userSection">
-                <button onclick="showSection('dashboard')">📊Dashboard</button>
-                <button onclick="showSection('products')">🛒Accounts</button>
-                <button onclick="showSection('mykeys')">🔑My Purchase</button>
-                <button onclick="showSection('settings')">⚙️Settings</button>
-            </div>
-            <div id="adminSection" class="hidden">
-                <button class="admin-only" onclick="openWallpaperAdmin()">🖼️Wallpaper</button>
-            </div>
+    <button onclick="showSection('dashboard')">📊Dashboard</button>
+    <button onclick="showSection('products')">🛒Accounts</button>
+    <button onclick="showSection('mykeys')">🔑My Purchase</button>    
+    <button id="myShopBtn" onclick="showSection('resellerShop')" style="display: none; background: linear-gradient(145deg, #ff6b35, #ff8e53) !important;">🛍️ My Shop</button>
+    
+    <button onclick="showSection('settings')">⚙️Settings</button>
+</div>
+
+
         </div>
 
-        <!-- Wallpaper Admin Modal -->
-        <div id="wallpaperAdminModal" class="hidden"
-            style="position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:2000;">
-            <div
-                style="width:92%; max-width:720px; background:#0f1730; padding:18px; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6); color:#fff;">
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-                    <h3 style="margin:0; font-size:18px;">Update Login Wallpaper</h3>
-                    <button onclick="closeWallpaperAdmin()"
-                        style="background:#ff4444; color:#fff; border-radius:10px; padding:8px 12px; border:0;">Close</button>
-                </div>
-                <div style="margin-top:12px; display:flex; gap:12px; flex-direction:column;">
-                    <label style="font-size:13px; opacity:.85;">Paste Image URL</label>
-                    <input id="wallpaperUrlInput" type="text" placeholder="https://..."
-                        style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); background:transparent; color:#fff;">
-                    <div style="display:flex; gap:8px;">
-                        <button onclick="saveWallpaperUrl()" class="action">Save URL</button>
-                        <button onclick="resetWallpaper()" class="danger">Reset</button>
-                    </div>
 
-                    <label style="font-size:13px; opacity:.85; margin-top:8px;">Or upload image</label>
-                    <input id="wallpaperFileInput" type="file" accept="image/*" style="color:#fff;"
-                        onchange="previewWallpaperFile(this)">
-                    <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
-                        <img id="wallpaperPreview" src="" alt="preview"
-                            style="width:120px; height:80px; object-fit:cover; border-radius:8px; background:#111">
-                        <div style="flex:1; display:flex; gap:8px;">
-                            <button onclick="applyWallpaperFromPreview()" class="action">Apply</button>
-                            <button onclick="closeWallpaperAdmin()" class=""
-                                style="background:#333; color:#fff;">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="main">
             <div id="dashboard" class="card">
@@ -1727,50 +1794,70 @@
 
 
 
-    <div style="text-align:center; padding: 10px 0 20px 0;">
-  <h3 style="margin: 0; font-size: 20px; color: #fff; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">
-      <div style="text-align: center; margin-bottom: 0px;">
-    <h3 style="font-size: 28px; font-weight: 800; background: linear-gradient(45deg, #fff, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;">Welcome</h3>
-  </h3>
-</div>
+                <div style="text-align:center; padding: 10px 0 20px 0;">
+                    <h3
+                        style="margin: 0; font-size: 20px; color: #fff; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">
+                        <div style="text-align: center; margin-bottom: 0px;">
+                            <h3
+                                style="font-size: 28px; font-weight: 800; background: linear-gradient(45deg, #fff, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;">
+                                Welcome</h3>
+                    </h3>
+                </div>
                 <!-- Live Status -->
-<div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 2px;">
-  
- <div style="background: linear-gradient(145deg, rgba(35, 42, 94, 0.9), rgba(21, 25, 58, 0.9)); border: 1px solid rgba(109, 124, 255, 0.1); border-radius: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 8px;">
-    <div style="background: rgba(109, 124, 255, 0.1); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-       <span style="font-size: 10px;">📧</span>
-    </div>
-    <div style="overflow: hidden;">
-        <small style="color: #a5b1ff; opacity: 0.6; font-size: 7px; font-weight: 700; text-transform: uppercase; display: block; line-height: 1;">Email</small>
-        <b id="userInfo" style="font-size: 10px; color: #fff; word-break: break-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">Loading...</b>
-    </div>
-</div>
+                <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 2px;">
 
- <div style="background: linear-gradient(145deg, rgba(35, 42, 94, 0.9), rgba(21, 25, 58, 0.9)); border: 1px solid rgba(109, 124, 255, 0.1); border-radius: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 8px;">
-    <div style="background: rgba(109, 124, 255, 0.1); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-       <span style="font-size: 10px;">🛡️</span>
-    </div>
-       <div style="display: flex; align-items: baseline; gap: 4px;">
-        <small style="color: #a5b1ff; opacity: 0.6; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">ROLE:</small>
-        <b id="roleBadge" class="ok" style="font-size: 11px; color: #6dff9a; font-weight: 800; line-height: 1;">Loading...</b>
-    </div>
-</div>
-  
-  <div onclick="showSection('products')" style="flex: 1; background: linear-gradient(145deg, #2b357a, #1a214d); border: 1px solid rgba(109, 124, 255, 0.3); border-radius: 122px; padding: 10px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-    <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 2px;">
-        <span class="pulse-dot" style="width: 6px; height: 6px;"></span>
-        <div style="font-size: 8px; color: #6dff9a; font-weight: 800; letter-spacing: 0.5px;">STOCK</div>
-    </div>
-    <b id="totalProducts" style="font-size: 18px; color: #fff; display: block; line-height: 1.1;">0</b>
-    <small style="color: rgba(255,255,255,0.7); font-size: 8px; font-weight: 600; text-transform: uppercase;">Accounts</small>
-  </div>
+                    <div
+                        style="background: linear-gradient(145deg, rgba(35, 42, 94, 0.9), rgba(21, 25, 58, 0.9)); border: 1px solid rgba(109, 124, 255, 0.1); border-radius: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 8px;">
+                        <div
+                            style="background: rgba(109, 124, 255, 0.1); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <span style="font-size: 10px;">📧</span>
+                        </div>
+                        <div style="overflow: hidden;">
+                            <small
+                                style="color: #a5b1ff; opacity: 0.6; font-size: 7px; font-weight: 700; text-transform: uppercase; display: block; line-height: 1;">Email</small>
+                            <b id="userInfo"
+                                style="font-size: 10px; color: #fff; word-break: break-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">Loading...</b>
+                        </div>
+                    </div>
 
-  <div onclick="showSection('mykeys')" style="flex: 1; background: linear-gradient(145deg, #2b357a, #1a214d); border: 1px solid rgba(109, 124, 255, 0.3); border-radius: 122px; padding: 10px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-    <div style="font-size: 8px; color: #ffeb3b; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 2px;">OWNED</div>
-    <b id="userKeys" style="font-size: 18px; color: #fff; display: block; line-height: 1.1;">0</b>
-    <small style="color: rgba(255,255,255,0.7); font-size: 8px; font-weight: 600; text-transform: uppercase;">Purchases</small>
-  </div>
-</div>
+                    <div
+                        style="background: linear-gradient(145deg, rgba(35, 42, 94, 0.9), rgba(21, 25, 58, 0.9)); border: 1px solid rgba(109, 124, 255, 0.1); border-radius: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 8px;">
+                        <div
+                            style="background: rgba(109, 124, 255, 0.1); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <span style="font-size: 10px;">🛡️</span>
+                        </div>
+                        <div style="display: flex; align-items: baseline; gap: 4px;">
+                            <small
+                                style="color: #a5b1ff; opacity: 0.6; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">ROLE:</small>
+                            <b id="roleBadge" class="ok"
+                                style="font-size: 11px; color: #6dff9a; font-weight: 800; line-height: 1;">Loading...</b>
+                        </div>
+                    </div>
+
+                    <div onclick="showSection('products')"
+                        style="flex: 1; background: linear-gradient(145deg, #2b357a, #1a214d); border: 1px solid rgba(109, 124, 255, 0.3); border-radius: 122px; padding: 10px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        <div
+                            style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 2px;">
+                            <span class="pulse-dot" style="width: 6px; height: 6px;"></span>
+                            <div style="font-size: 8px; color: #6dff9a; font-weight: 800; letter-spacing: 0.5px;">STOCK
+                            </div>
+                        </div>
+                        <b id="totalProducts"
+                            style="font-size: 18px; color: #fff; display: block; line-height: 1.1;">0</b>
+                        <small
+                            style="color: rgba(255,255,255,0.7); font-size: 8px; font-weight: 600; text-transform: uppercase;">Accounts</small>
+                    </div>
+
+                    <div onclick="showSection('mykeys')"
+                        style="flex: 1; background: linear-gradient(145deg, #2b357a, #1a214d); border: 1px solid rgba(109, 124, 255, 0.3); border-radius: 122px; padding: 10px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        <div
+                            style="font-size: 8px; color: #ffeb3b; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 2px;">
+                            OWNED</div>
+                        <b id="userKeys" style="font-size: 18px; color: #fff; display: block; line-height: 1.1;">0</b>
+                        <small
+                            style="color: rgba(255,255,255,0.7); font-size: 8px; font-weight: 600; text-transform: uppercase;">Purchases</small>
+                    </div>
+                </div>
 
                 <!-- Pro Tip Section -->
                 <div
@@ -1785,30 +1872,33 @@
                 </div>
 
                 <!-- Flash Sale Banner -->
-            <div class="announcement-bar neon-style">
-                <div class="scrolling-text">
-                    <span>🔥 FLASH SALE: 50% OFF | ⚡ Xiaomi Bootloader Unlock Permission Accounts Available | 🛡️
-                        Trusted Service – No Scam</span>
+                <div class="announcement-bar neon-style">
+                    <div class="scrolling-text">
+                        <span>🔥 FLASH SALE: 50% OFF | ⚡ Xiaomi Bootloader Unlock Permission Accounts Available | 🛡️
+                            Trusted Service – No Scam</span>
 
-                    <span>🔥 Join Our Telegram & YouTube Channels | ⚡ Exclusive Offers, Discounts & Xiaomi Guides | 🛡️
-                        Verified & Genuine Support</span>
+                        <span>🔥 Join Our Telegram & YouTube Channels | ⚡ Exclusive Offers, Discounts & Xiaomi Guides |
+                            🛡️
+                            Verified & Genuine Support</span>
 
-                    <span>🔥 Instant Approval in 5–10 Minutes | ⚡ Working 100% on HyperOS | 🛡️ Safe & Secure
-                        Payments</span>
+                        <span>🔥 Instant Approval in 5–10 Minutes | ⚡ Working 100% on HyperOS | 🛡️ Safe & Secure
+                            Payments</span>
 
-                    <span>🔥 We Sell Xiaomi Community Bootloader Unlock Permission Accounts | ⚡ Official Process Only |
-                        🛡️ Transparency Guaranteed</span>
+                        <span>🔥 We Sell Xiaomi Community Bootloader Unlock Permission Accounts | ⚡ Official Process
+                            Only |
+                            🛡️ Transparency Guaranteed</span>
 
-                    <span>🧾 Disclaimer: We only provide Xiaomi Community Bootloader Unlock Permission Accounts.
-                        Bootloader unlocking is done using official Xiaomi tools and follows Xiaomi policies. No illegal
-                        or unauthorized services.</span>
+                        <span>🧾 Disclaimer: We only provide Xiaomi Community Bootloader Unlock Permission Accounts.
+                            Bootloader unlocking is done using official Xiaomi tools and follows Xiaomi policies. No
+                            illegal
+                            or unauthorized services.</span>
 
 
-                    <span>🔥 Instant Support Available | ⚡ Real Accounts • Real Results | 🛡️ Customer Satisfaction
-                        Guaranteed</span>
+                        <span>🔥 Instant Support Available | ⚡ Real Accounts • Real Results | 🛡️ Customer Satisfaction
+                            Guaranteed</span>
+                    </div>
+                    <div class="bottom-glow"></div>
                 </div>
-                <div class="bottom-glow"></div>
-            </div>
 
             </div>
             </style>
@@ -1830,6 +1920,24 @@
                         </div>
                     </div>
                 </div>
+
+                      <!-- ===== RESELLER APPLY SECTION ===== -->
+      <div
+        style="margin:14px 0; padding:12px; border-radius:12px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,235,59,0.15);">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <div>
+            <div style="font-weight:800; font-size:13px; color:#ffeb3b;">🏪 Reseller Program</div>
+            <div id="resellerInfoText" style="font-size:11px; color:rgba(255,255,255,0.7);">Apply to sell &amp; manage
+              your own shop.</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+            <div id="resellerStatusDisplay" style="font-size:11px; color:#aaa;">Status: none</div>
+            <button id="applyResellerBtn" onclick="applyForReseller()" class="action"
+              style="padding:7px 12px; font-size:12px;">Apply</button>
+          </div>
+        </div>
+      </div>
+      <!-- ===== RESELLER APPLY SECTION END ===== -->
 
 
                 <div
@@ -1989,6 +2097,41 @@
             <div id="productList" class="list" style="font-size: 14px;">
                 Loading products...
             </div>
+        </div>
+
+
+
+
+
+        <!-- RESELLER SHOP / MANAGEMENT -->
+  <div id="resellerShop" class="card hidden" style="max-width:720px; margin:20px auto;">
+    <h3
+      style="text-align:center; background: linear-gradient(45deg, #00d4aa, #6d7cff); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+      🏪 Manage My Shop</h3>
+
+    <div id="resellerAddForm"
+      style="background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.2); border-radius:14px; padding:16px; margin-bottom:14px;">
+      <div style="font-size:13px; font-weight:700; color:#00d4aa; margin-bottom:10px;">➕ Add New Product</div>
+      <div style="display:flex; gap:8px; flex-direction:column;">
+        <input id="r-prod-name" placeholder="Product Name"
+          style="padding:10px; border-radius:8px; background:#0d1127; border:1px solid #303651; color:#fff;">
+        <input id="r-prod-price" placeholder="Price (₹)" type="number"
+          style="padding:10px; border-radius:8px; background:#0d1127; border:1px solid #303651; color:#fff;">
+        <input id="r-prod-login" placeholder="Login ID / Email"
+          style="padding:10px; border-radius:8px; background:#0d1127; border:1px solid #303651; color:#fff;">
+        <input id="r-prod-pass" placeholder="Password"
+          style="padding:10px; border-radius:8px; background:#0d1127; border:1px solid #303651; color:#fff;">
+        <div style="display:flex; gap:8px;">
+          <button id="saveResellerProdBtn" class="action" onclick="saveProductToDb()" style="flex:1;">💾 Save
+            Product</button>
+          
+                        <button onclick="loadProductManagement()" class="">Refresh</button>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="margin-top:14px;">My Products</h4>
+            <div id="resellerProductList">Loading...</div>
         </div>
 
 
@@ -2223,25 +2366,8 @@
 
 
 
-            <div
-                style="display: flex; gap: 12px; width: 100%; align-items: center; justify-content: center; padding: 0 10px; box-sizing: border-box;">
+            <h2 style="text-align:center; color:#fff; font-size:18px; margin:10px 0;">🔑 User Login</h2>
 
-                <div onclick="showLoginType('admin')" class="rgb-rotating-box">
-                    <div class="rgb-inner">
-                        <span style="font-size: 18px;">🛡️</span>
-                    </div>
-                </div>
-
-                <button class="neon-btn" style="flex: 1; min-width: 120px;">
-                    User Login
-                </button>
-
-                <div onclick="showLoginType('admin')" class="rgb-rotating-box">
-                    <div class="rgb-inner">
-                        <span style="font-size: 18px;">🛡️</span>
-                    </div>
-                </div>
-            </div>
 
 
             <style>
@@ -2385,29 +2511,7 @@
             </div>
 
 
-            <div id="adminLogin" class="hidden" style="flex-direction: column; gap: 15px; margin: 0;">
-                <div
-                    style="text-align: center; color: #ff6b35; font-weight: bold; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;">
-                    🛡️Secure Admin Terminal
-                </div>
 
-                <input id="adminEmail" type="email" value="igrishu2024@gmail.com" placeholder="Admin Email"
-                    style="width: 100%; height: 50px; background: rgba(255, 255, 255, 0.03); border: 1.5px solid rgba(255, 107, 53, 0.4); border-radius: 12px; padding: 0 15px; color: #fff; outline: none;">
-
-                <input id="adminPassword" type="password" value="@danger978" placeholder="Admin Password"
-                    style="width: 100%; height: 50px; background: rgba(255, 255, 255, 0.03); border: 1.5px solid rgba(255, 107, 53, 0.4); border-radius: 12px; padding: 0 15px; color: #fff; outline: none;">
-
-                <button class="neon-btn" onclick="adminLogin()"
-                    style="width: 100%; height: 50px; border-radius: 12px; background: linear-gradient(90deg, #ff6b35, #ff2e2e); color: white; border: none; font-weight: bold; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 46, 46, 0.3); margin: 0;">
-                    AUTHORIZE ACCESS
-                </button>
-
-                <div style="text-align: center; margin-top: 5px;">
-                    <a href="#" onclick="showLoginType('user')"
-                        style="color: rgba(255,255,255,0.6); font-size: 12px; text-decoration: none;">← Back to User
-                        Login</a>
-                </div>
-            </div>
 
             <div id="userSignup" class="hidden" style="flex-direction: column; gap: 15px; margin: 0;">
                 <div
@@ -2474,6 +2578,116 @@
 
     <div id="notify"></div>
 
+    <!-- ===== PROFILE COMPLETE POPUP ===== -->
+    <div id="profileCompletePopup" style="
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.82);
+        backdrop-filter: blur(7px);
+        z-index: 99999;
+        align-items: center;
+        justify-content: center;
+        animation: fadeInBg 0.4s ease;
+    ">
+        <div style="
+            background: linear-gradient(160deg, #1b1f3b, #0f1220);
+            border: 1px solid rgba(109,124,255,0.3);
+            border-radius: 24px;
+            padding: 28px 22px 22px;
+            width: 90%;
+            max-width: 370px;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+            animation: slideUpPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        ">
+
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 22px;">
+                <div style="font-size: 44px; margin-bottom: 8px;">👤</div>
+                <h3 style="margin: 0 0 6px; font-size: 20px; font-weight: 900; color: #fff;">Profile Incomplete! 🔐</h3>
+                <p style="margin: 0; font-size: 12.5px; color: rgba(255,255,255,0.5); line-height: 1.6;">
+                    Apni details fill karein — order aur support ke liye zaroori hai.
+                </p>
+            </div>
+
+            <!-- Input Fields -->
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+
+                <div style="position: relative;">
+                    <span
+                        style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:15px; pointer-events:none;">📝</span>
+                    <input id="popup-name" type="text" placeholder="Full Name" style="width:100%; padding:13px 14px 13px 40px; border-radius:12px;
+                               background:rgba(255,255,255,0.05); border:1px solid rgba(109,124,255,0.25);
+                               color:#fff; font-size:14px; outline:none; box-sizing:border-box; transition:0.3s;"
+                        onfocus="this.style.border='1px solid #6d7cff'; this.style.boxShadow='0 0 12px rgba(109,124,255,0.2)'"
+                        onblur="this.style.border='1px solid rgba(109,124,255,0.25)'; this.style.boxShadow='none'">
+                </div>
+
+                <div style="position: relative;">
+                    <span
+                        style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:15px; pointer-events:none;">📞</span>
+                    <input id="popup-mobile" type="tel" placeholder="Mobile Number (10 digits)" maxlength="10" style="width:100%; padding:13px 14px 13px 40px; border-radius:12px;
+                               background:rgba(255,255,255,0.05); border:1px solid rgba(109,124,255,0.25);
+                               color:#fff; font-size:14px; outline:none; box-sizing:border-box; transition:0.3s;"
+                        onfocus="this.style.border='1px solid #6d7cff'; this.style.boxShadow='0 0 12px rgba(109,124,255,0.2)'"
+                        onblur="this.style.border='1px solid rgba(109,124,255,0.25)'; this.style.boxShadow='none'">
+                </div>
+
+                <div style="position: relative;">
+                    <span
+                        style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:15px; pointer-events:none;">✈️</span>
+                    <input id="popup-telegram" type="text" placeholder="Telegram Username (@username)" style="width:100%; padding:13px 14px 13px 40px; border-radius:12px;
+                               background:rgba(255,255,255,0.05); border:1px solid rgba(109,124,255,0.25);
+                               color:#fff; font-size:14px; outline:none; box-sizing:border-box; transition:0.3s;"
+                        onfocus="this.style.border='1px solid #6d7cff'; this.style.boxShadow='0 0 12px rgba(109,124,255,0.2)'"
+                        onblur="this.style.border='1px solid rgba(109,124,255,0.25)'; this.style.boxShadow='none'">
+                </div>
+            </div>
+
+            <!-- Error msg -->
+            <p id="popup-err"
+                style="color:#ff6b6b; font-size:12px; text-align:center; margin:0 0 12px; min-height:16px;"></p>
+
+            <!-- Submit Button -->
+            <button id="popup-submit-btn" onclick="submitProfileFromPopup()" style="
+                width: 100%; padding: 15px;
+                background: linear-gradient(90deg, #6d7cff, #bd00ff);
+                color: #fff; border: none; border-radius: 14px;
+                font-weight: 800; font-size: 15px; cursor: pointer;
+                letter-spacing: 0.5px;
+                box-shadow: 0 6px 20px rgba(109,124,255,0.35);
+                transition: 0.2s;
+            ">
+                ✅ Save & Continue
+            </button>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeInBg {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUpPop {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.92);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+    <!-- ===== PROFILE COMPLETE POPUP END ===== -->
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCDCijRwIxpHJK0gYmElkocvu8tNKFykpc",
@@ -2496,9 +2710,8 @@
         let editingProductId = null, currentQRProduct = null;
 
 
-
         // -----------------------------
-        // Wallpaper admin + realtime sync
+        // Wallpaper realtime sync (read-only for users)
         // -----------------------------
         const WP_POLL_INTERVAL = 15000;
         let _wpPollId = null;
@@ -2513,54 +2726,6 @@
             lock.style.backgroundImage = `url('${url}')`;
             lock.style.backgroundSize = 'cover';
             lock.style.backgroundPosition = 'center center';
-        }
-
-        function openWallpaperAdmin() {
-            document.getElementById('wallpaperAdminModal').classList.remove('hidden');
-            const preview = document.getElementById('wallpaperPreview');
-            const saved = localStorage.getItem('loginWallpaper') || '';
-            preview.src = saved;
-            document.getElementById('wallpaperUrlInput').value = '';
-        }
-
-        function closeWallpaperAdmin() {
-            document.getElementById('wallpaperAdminModal').classList.add('hidden');
-        }
-
-        function previewWallpaperFile(input) {
-            const f = input.files && input.files[0];
-            if (!f) return;
-            const reader = new FileReader();
-            reader.onload = function (e) { document.getElementById('wallpaperPreview').src = e.target.result; };
-            reader.readAsDataURL(f);
-        }
-
-        function applyWallpaperFromPreview() {
-            const src = document.getElementById('wallpaperPreview').src;
-            if (!src) return alert('Please choose or paste an image first');
-            setWallpaper(src);
-            localStorage.setItem('loginWallpaper', src);
-            db.collection('settings').doc('ui').set({ loginWallpaper: src }, { merge: true })
-                .then(() => { notify('Wallpaper applied', 'success'); closeWallpaperAdmin(); })
-                .catch(err => { notify('Failed to save wallpaper', 'error'); console.error(err); });
-        }
-
-        function saveWallpaperUrl() {
-            const url = document.getElementById('wallpaperUrlInput').value.trim();
-            if (!url) return alert('Enter an image URL');
-            setWallpaper(url);
-            localStorage.setItem('loginWallpaper', url);
-            db.collection('settings').doc('ui').set({ loginWallpaper: url }, { merge: true })
-                .then(() => { notify('Wallpaper saved', 'success'); closeWallpaperAdmin(); })
-                .catch(err => { notify('Failed to save wallpaper', 'error'); console.error(err); });
-        }
-
-        function resetWallpaper() {
-            setWallpaper(null);
-            localStorage.removeItem('loginWallpaper');
-            db.collection('settings').doc('ui').set({ loginWallpaper: firebase.firestore.FieldValue.delete() }, { merge: true })
-                .then(() => { notify('Wallpaper reset', 'success'); })
-                .catch(err => { console.error(err); notify('Failed to reset', 'error'); });
         }
 
         function startWallpaperPolling() {
@@ -3262,6 +3427,8 @@
         }
 
         // Helper function to avoid duplicate code
+        // 🔥 FIX: Admin products use {loginId, key}, Reseller products use {login, pass}
+        // Dono field names support kiye hain taaki credentials hamesha show hon
         function renderCardUI(id, label, color, style, infoLine, productInfo, isVisible) {
             let cardHtml = `
     <div class="item" style="${style} margin-bottom:20px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.03);">
@@ -3274,26 +3441,30 @@
         </div>`;
 
             if (isVisible && productInfo) {
+                // Admin = loginId + key | Reseller = login + pass — dono support
+                const loginVal = productInfo.loginId || productInfo.login || 'N/A';
+                const passVal = productInfo.key || productInfo.pass || null;
+
                 cardHtml += `
         <div class="product-creds" style="margin-top:12px; background:rgba(0,0,0,0.2); padding:15px; border-radius:10px; border:1px solid ${color};">
             
             <div style="margin-bottom:15px;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
                     <b style="color:${color}; font-size:13px;"><i class="fas fa-id-card"></i> Login ID:</b>
-                    <span style="color:#fff; font-size:14px; font-family:monospace;">${productInfo.loginId || 'N/A'}</span>
+                    <span style="color:#fff; font-size:14px; font-family:monospace;">${loginVal}</span>
                 </div>
                 <button class="copy-btn" style="width:100%; padding:12px; background:${color}; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" 
-                onclick="copyToClipboard('${productInfo.loginId}', this)">Copy ID</button>
+                onclick="copyToClipboard('${loginVal}', this)">📋 Copy ID</button>
             </div>
 
-            ${productInfo.key ? `
+            ${passVal ? `
             <div>
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
                     <b style="color:${color}; font-size:13px;"><i class="fas fa-key"></i> Password:</b>
-                    <span style="color:#fff; font-size:14px; font-family:monospace;">${productInfo.key}</span>
+                    <span style="color:#fff; font-size:14px; font-family:monospace;">${passVal}</span>
                 </div>
                 <button class="copy-btn" style="width:100%; padding:12px; background:${color}; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" 
-                onclick="copyToClipboard('${productInfo.key}', this)">Copy Key</button>
+                onclick="copyToClipboard('${passVal}', this)">🔑 Copy Password</button>
             </div>` : ''}
 
         </div>`;
@@ -3401,7 +3572,12 @@
             // NAME & ROLE TEXT
             let namePart = userEmail.split('@')[0].toUpperCase();
             if (namePart.length > 10) namePart = namePart.substring(0, 8) + "..";
-            const roleDisplayText = currentRole === 'admin' ? '👑Administrator' : 'Verified User✅';
+            // Determine if user is an approved reseller and adjust displayed role
+            const isRes = !!(userData && userData.isReseller);
+            let roleDisplayText;
+            if (currentRole === 'admin') roleDisplayText = '👑Administrator';
+            else if (isRes) roleDisplayText = 'Reseller 🛍️';
+            else roleDisplayText = 'Verified User✅';
 
             // Sidebar Updates
             if (document.getElementById('sideName')) document.getElementById('sideName').textContent = namePart;
@@ -3414,22 +3590,64 @@
 
             // DASHBOARD STATS
             if (document.getElementById('userInfo')) document.getElementById('userInfo').textContent = userEmail;
-            if (document.getElementById('roleBadge')) document.getElementById('roleBadge').textContent = currentRole.toUpperCase();
+            const badgeText = isRes ? 'RESELLER' : currentRole.toUpperCase();
+            if (document.getElementById('roleBadge')) document.getElementById('roleBadge').textContent = badgeText;
             if (document.getElementById('totalProducts')) document.getElementById('totalProducts').textContent = availableOnly;
             if (document.getElementById('userKeys')) document.getElementById('userKeys').textContent = currentProducts.length;
 
-            // ADMIN SECTION CONTROL (Fix: Isse admin section sahi se dikhega)
-            const adminSec = document.getElementById('adminSection');
-            const userSec = document.getElementById('userSection');
+            // ---- RESELLER STATUS: Update Apply Button & Status Display ----
+            const resellerStatus = (userData && userData.resellerStatus) ? userData.resellerStatus : 'none';
+            const isReseller = !!(userData && userData.isReseller);
 
-            if (currentRole === 'admin') {
-                if (adminSec) adminSec.classList.remove('hidden');
-                if (userSec) userSec.classList.add('hidden');
-            } else {
-                if (adminSec) adminSec.classList.add('hidden');
-                if (userSec) userSec.classList.remove('hidden');
+            // Update status text display
+            const resellerStatusEl = document.getElementById('resellerStatusDisplay');
+            if (resellerStatusEl) {
+                if (resellerStatus === 'approved' || isReseller) {
+                    resellerStatusEl.textContent = 'Status: Approved ✅';
+                    resellerStatusEl.style.color = '#6dff9a';
+                } else if (resellerStatus === 'pending') {
+                    resellerStatusEl.textContent = 'Status: Pending ⏳';
+                    resellerStatusEl.style.color = '#ffc107';
+                } else {
+                    resellerStatusEl.textContent = 'Status: none';
+                    resellerStatusEl.style.color = '#aaa';
+                }
+            }
+
+            // Update Apply button state based on Firebase status
+            const applyBtn = document.getElementById('applyResellerBtn');
+            if (applyBtn) {
+                if (resellerStatus === 'approved' || isReseller) {
+                    applyBtn.disabled = true;
+                    applyBtn.textContent = '✅ Approved';
+                    applyBtn.style.opacity = '0.7';
+                    applyBtn.style.cursor = 'not-allowed';
+                } else if (resellerStatus === 'pending') {
+                    applyBtn.disabled = true;
+                    applyBtn.textContent = '⏳ Pending';
+                    applyBtn.style.opacity = '0.7';
+                    applyBtn.style.background = 'rgba(255,193,7,0.3)';
+                    applyBtn.style.cursor = 'not-allowed';
+                } else {
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Apply for Reseller';
+                    applyBtn.style.opacity = '1';
+                    applyBtn.style.cursor = 'pointer';
+                    applyBtn.style.background = '';
+                }
+            }
+
+            // Show My Shop button in sidebar only for approved resellers
+            const myShopBtn = document.getElementById('myShopBtn');
+            if (myShopBtn) {
+                myShopBtn.style.display = isReseller ? 'block' : 'none';
+            }
+            const addForm = document.getElementById('resellerAddForm');
+            if (addForm) {
+                addForm.style.display = isReseller ? 'block' : 'none';
             }
         }
+
 
 
 
@@ -3516,11 +3734,188 @@
                 }
             });
 
-            // 5. Data Render Calls (Aapka original logic)
             if (id === 'products') renderProductsList();
             if (id === 'mykeys') renderMyKeys();
-            if (id === 'broadcast') loadPreviousBroadcasts();
+            if (id === 'resellerShop') loadProductManagement();
 
+        }
+
+
+        // -----------------------------
+        // Reseller: Apply / Admin approve / Reseller shop
+        // -----------------------------
+        async function applyForReseller() {
+            if (!auth.currentUser) return alert('Please login first');
+            try {
+                const uid = auth.currentUser.uid;
+                const email = auth.currentUser.email || 'N/A';
+
+                // Firestore se poori user details fetch karein
+                const userSnap = await db.collection('users').doc(uid).get();
+                const userData = userSnap.exists ? userSnap.data() : {};
+
+                const fullName = userData.name || 'Not Set';
+                const mobile = userData.mobile || 'Not Set';
+                const telegramUser = userData.telegram || 'Not Set';
+                const appliedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+                // Firestore mein pending status set karein
+                await db.collection('users').doc(uid).update({
+                    resellerStatus: 'pending',
+                    isReseller: false,
+                    resellerAppliedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                notify('Reseller application submitted. Admin will review.', 'success');
+
+                // Telegram ko full details wala message bhejein
+                const msg =
+                    `🙋 <b>New Reseller Application</b>\n\n` +
+                    `👤 <b>User Details:</b>\n` +
+                    `📝 Name    : ${fullName}\n` +
+                    `📧 Email   : ${email}\n` +
+                    `📞 Mobile  : ${mobile}\n` +
+                    `✈️ Telegram: ${telegramUser}\n` +
+                    `🔑 UID     : ${uid}\n\n` +
+                    `⏰ Applied At: ${appliedAt}\n` +
+                    `📌 Status  : <b>Pending Review</b>`;
+
+                if (typeof sendTelegramAlert === 'function') sendTelegramAlert(msg);
+
+                // UI update karein - immediately pending show karo (renderUI bhi refresh karega)
+                const s = document.getElementById('resellerStatusDisplay');
+                if (s) {
+                    s.textContent = 'Status: Pending ⏳';
+                    s.style.color = '#ffc107';
+                }
+
+                const applyBtn = document.getElementById('applyResellerBtn');
+                if (applyBtn) {
+                    applyBtn.disabled = true;
+                    applyBtn.textContent = '⏳ Pending';
+                    applyBtn.style.opacity = '0.7';
+                    applyBtn.style.background = 'rgba(255,193,7,0.3)';
+                    applyBtn.style.cursor = 'not-allowed';
+                }
+
+            } catch (e) {
+                console.error('Apply reseller error', e);
+                notify('Error applying for reseller', 'error');
+            }
+        }
+
+
+
+        // -------- Reseller Product Management --------
+        async function saveProductToDb() {
+            if (!auth.currentUser) return alert('Please login');
+            try {
+                // Admin bypass — resellers must be approved & not blocked
+                const ud = (await db.collection('users').doc(auth.currentUser.uid).get()).data() || {};
+                if (userRole !== 'admin') {
+                    if (!ud.isReseller) {
+                        notify('❌ Only approved resellers can add products.', 'error');
+                        return;
+                    }
+                    if (ud.resellerBlocked === true) {
+                        notify('🚫 Your shop has been blocked by admin. You cannot add products.', 'error');
+                        return;
+                    }
+                }
+
+                const name = document.getElementById('r-prod-name').value.trim();
+                const price = Number(document.getElementById('r-prod-price').value.trim() || 0);
+                const login = document.getElementById('r-prod-login').value.trim();
+                const pass = document.getElementById('r-prod-pass').value.trim();
+                if (!name || !login) return alert('Please provide name and login');
+                // disable button while saving
+                const saveBtn = document.getElementById('saveResellerProdBtn');
+                if (saveBtn) saveBtn.disabled = true;
+
+                try {
+                    await db.collection('products').add({
+                        name, price, login, pass,
+                        resellerId: auth.currentUser.uid,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        isSoldOut: false
+                    });
+                    notify('Product saved');
+                } catch (dbErr) {
+                    console.error('Firestore add error', dbErr);
+                    notify('Save failed: ' + (dbErr.message || dbErr), 'error');
+                    throw dbErr;
+                } finally {
+                    if (saveBtn) saveBtn.disabled = false;
+                }
+                document.getElementById('r-prod-name').value = '';
+                document.getElementById('r-prod-price').value = '';
+                document.getElementById('r-prod-login').value = '';
+                document.getElementById('r-prod-pass').value = '';
+                loadProductManagement();
+            } catch (e) {
+                console.error('SaveProduct outer error', e);
+                const msg = (e && e.message) ? e.message : String(e);
+                notify('Save failed: ' + msg, 'error');
+                // ensure button re-enabled
+                const saveBtn = document.getElementById('saveResellerProdBtn'); if (saveBtn) saveBtn.disabled = false;
+            }
+        }
+
+        async function loadProductManagement() {
+            const list = document.getElementById('resellerProductList');
+            if (!list) return;
+            list.innerHTML = 'Loading...';
+            if (!auth.currentUser) { list.innerHTML = 'Please login'; return; }
+            try {
+                const snap = await db.collection('products').where('resellerId', '==', auth.currentUser.uid).get();
+                if (snap.empty) { list.innerHTML = '<div style="color:#aaa">No products yet.</div>'; return; }
+                let html = '';
+                snap.docs.forEach(d => {
+                    const p = d.data();
+                    html += `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; justify-content:space-between; align-items:center;">
+                        <div><b>${p.name}</b><br><small>₹${p.price} • ${p.login}/${p.pass}</small></div>
+                        <div style="display:flex; gap:8px">
+                            <button onclick="editProduct('${d.id}')">Edit</button>
+                            <button class=\"danger\" onclick="deleteProduct('${d.id}')">Delete</button>
+                        </div>
+                    </div>`;
+                });
+                list.innerHTML = html;
+            } catch (e) {
+                console.error('LoadProductManagement error', e);
+                const msg = (e && e.message) ? e.message : 'Error loading products';
+                list.innerHTML = `<div style="color:#ff6666">${msg}</div>`;
+            }
+        }
+
+        async function editProduct(pid) {
+            try {
+                const doc = await db.collection('products').doc(pid).get();
+                if (!doc.exists) return alert('Not found');
+                const p = doc.data();
+                // owner check
+                if (p.resellerId !== auth.currentUser.uid && userRole !== 'admin') return alert('Not authorized');
+                const name = prompt('Name', p.name) || p.name;
+                const price = prompt('Price', p.price) || p.price;
+                const login = prompt('Login', p.login) || p.login;
+                const pass = prompt('Pass', p.pass) || p.pass;
+                await db.collection('products').doc(pid).update({ name, price: Number(price), login, pass });
+                notify('Updated');
+                loadProductManagement();
+            } catch (e) { console.error(e); notify('Update failed', 'error'); }
+        }
+
+        async function deleteProduct(pid) {
+            try {
+                const doc = await db.collection('products').doc(pid).get();
+                if (!doc.exists) return alert('Not found');
+                const p = doc.data();
+                if (p.resellerId !== auth.currentUser.uid && userRole !== 'admin') return alert('Not authorized');
+                if (!confirm('Delete this product?')) return;
+                await db.collection('products').doc(pid).delete();
+                notify('Deleted');
+                loadProductManagement();
+            } catch (e) { console.error(e); notify('Delete failed', 'error'); }
         }
 
 
@@ -3573,11 +3968,14 @@
 
 
         function showLoginType(type) {
-            ['userLogin', 'adminLogin', 'userSignup', 'userForgot'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
+            ['userLogin', 'userSignup', 'userForgot'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
             });
-            document.getElementById(type === 'user' ? 'userLogin' : 'adminLogin').classList.remove('hidden');
+            const target = document.getElementById('userLogin');
+            if (target) target.classList.remove('hidden');
         }
+
 
         async function userLogin() {
             try {
@@ -3602,14 +4000,28 @@
                     email: document.getElementById('signupEmail').value,
                     role: 'user',
                     purchasedProducts: [],
+                    resellerStatus: 'none',
+                    isReseller: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 notify('Account created successfully!');
+
+                // Send Telegram notification for new signup (non-blocking)
+                try {
+                    const email = document.getElementById('signupEmail').value;
+                    const uid = userCredential.user.uid;
+                    const time = new Date().toLocaleString();
+                    const alertMsg = `<b>New User Signup</b>\n📧Email: ${email}\n📂UID: ${uid}\n⌚️Time: ${time}`;
+                    if (typeof sendTelegramAlert === 'function') sendTelegramAlert(alertMsg);
+                } catch (tgErr) {
+                    console.log('Telegram notify error:', tgErr);
+                }
             } catch (err) {
                 document.getElementById('msg').textContent = err.message;
                 document.getElementById('msg').className = 'bad';
             }
         }
+
 
         async function forgotPassword() {
             try {
@@ -3677,6 +4089,11 @@
                 document.getElementById('glassToggle').checked = true;
                 document.body.classList.add('glass-mode');
             }
+            // Wire reseller buttons
+            const applyBtn = document.getElementById('applyResellerBtn');
+            if (applyBtn) applyBtn.addEventListener('click', applyForReseller);
+            const saveProdBtn = document.getElementById('saveResellerProdBtn');
+            if (saveProdBtn) saveProdBtn.addEventListener('click', saveProductToDb);
         };
 
         // ==========================================
@@ -3698,8 +4115,6 @@
 
 
         // 🔥 MODIFIED: Auto-recreate user if deleted from Firestore
-        // Variable ko script mein sabse upar (onAuthStateChanged ke bahar) rakhein
-        let couponListenerStarted = false;
 
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -3719,10 +4134,7 @@
                     userDoc = await userDocRef.get();
                 }
 
-                if (!couponListenerStarted) {
-                    loadActiveCoupons();
-                    couponListenerStarted = true;
-                }
+
 
                 // REAL-TIME SYNC & INPUT AUTO-FILL
                 userDocRef.onSnapshot((doc) => {
@@ -3752,7 +4164,6 @@
             } else {
                 showLockScreen();
                 if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
-                couponListenerStarted = false;
             }
         });
 
@@ -3772,7 +4183,156 @@
             document.getElementById('lock').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
             showSection('dashboard');
+            // Login ke 2 second baad profile check karein
+            setTimeout(checkProfileCompletion, 2000);
         }
+
+        // ==========================================
+        // 🔥 PROFILE COMPLETION CHECK FUNCTION
+        // ==========================================
+        async function checkProfileCompletion() {
+            if (!currentUser) return;
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (!doc.exists) return;
+                const data = doc.data();
+
+                const isIncomplete =
+                    !data.name || data.name.toString().trim() === '' ||
+                    !data.mobile || data.mobile.toString().trim() === '' ||
+                    !data.telegram || data.telegram.toString().trim() === '';
+
+                if (!isIncomplete) return; // Sab filled hai, popup mat dikhao
+
+                // Existing values popup mein pre-fill karein
+                const nameEl = document.getElementById('popup-name');
+                const mobileEl = document.getElementById('popup-mobile');
+                const telegramEl = document.getElementById('popup-telegram');
+                if (nameEl) nameEl.value = data.name || '';
+                if (mobileEl) mobileEl.value = data.mobile || '';
+                if (telegramEl) telegramEl.value = data.telegram || '';
+
+                // Error clear karein
+                const errEl = document.getElementById('popup-err');
+                if (errEl) errEl.textContent = '';
+
+                // Popup show karein
+                const popup = document.getElementById('profileCompletePopup');
+                if (popup) popup.style.display = 'flex';
+
+            } catch (err) {
+                console.warn('Profile check error:', err);
+            }
+        }
+
+        // ==========================================
+        // 🔥 POPUP SUBMIT FUNCTION
+        // ==========================================
+        async function submitProfileFromPopup() {
+            if (!currentUser) return;
+
+            const nameVal = (document.getElementById('popup-name')?.value || '').trim();
+            const mobileVal = (document.getElementById('popup-mobile')?.value || '').trim();
+            const telegramVal = (document.getElementById('popup-telegram')?.value || '').trim();
+            const errEl = document.getElementById('popup-err');
+            const submitBtn = document.getElementById('popup-submit-btn');
+
+            // --- Validation ---
+            if (!nameVal) {
+                if (errEl) errEl.textContent = '❌ Full Name zaroori hai!';
+                document.getElementById('popup-name')?.focus();
+                return;
+            }
+            if (!mobileVal || mobileVal.length < 10 || isNaN(mobileVal)) {
+                if (errEl) errEl.textContent = '❌ Valid 10-digit Mobile Number daalo!';
+                document.getElementById('popup-mobile')?.focus();
+                return;
+            }
+            if (!telegramVal) {
+                if (errEl) errEl.textContent = '❌ Telegram Username zaroori hai!';
+                document.getElementById('popup-telegram')?.focus();
+                return;
+            }
+
+            // --- Save to Firestore ---
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ Saving...';
+            }
+            if (errEl) errEl.textContent = '';
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    name: nameVal,
+                    mobile: mobileVal,
+                    telegram: telegramVal,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Settings page ke inputs sync karein
+                const nInp = document.getElementById('upd-name');
+                const mInp = document.getElementById('upd-mobile');
+                const tInp = document.getElementById('upd-telegram');
+                if (nInp) nInp.value = nameVal;
+                if (mInp) mInp.value = mobileVal;
+                if (tInp) tInp.value = telegramVal;
+
+                // Sidebar naam update
+                const sideNameEl = document.getElementById('sideName');
+                if (sideNameEl) sideNameEl.textContent = nameVal.split(' ')[0].toUpperCase();
+
+                // Success feedback phir popup close
+                if (submitBtn) {
+                    submitBtn.textContent = '✅ Saved!';
+                    submitBtn.style.background = 'linear-gradient(90deg, #00d4aa, #6dff9a)';
+                    submitBtn.style.color = '#000';
+                }
+                setTimeout(() => {
+                    const popup = document.getElementById('profileCompletePopup');
+                    if (popup) {
+                        popup.style.opacity = '0';
+                        popup.style.transition = 'opacity 0.35s ease';
+                        setTimeout(() => {
+                            popup.style.display = 'none';
+                            popup.style.opacity = '';
+                            popup.style.transition = '';
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = '✅ Save & Continue';
+                                submitBtn.style.background = 'linear-gradient(90deg, #6d7cff, #bd00ff)';
+                                submitBtn.style.color = '#fff';
+                            }
+                        }, 350);
+                    }
+                    notify('Profile save ho gayi! 🎉', 'success');
+                    loadUserData();
+                }, 800);
+
+            } catch (err) {
+                console.error('Popup profile save error:', err);
+                if (errEl) errEl.textContent = '❌ Error: ' + err.message;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '✅ Save & Continue';
+                }
+            }
+        }
+
+        function closeProfilePopup() {
+            // Yeh function ab internal use ke liye hai (submit ke baad)
+            const popup = document.getElementById('profileCompletePopup');
+            if (!popup) return;
+            popup.style.opacity = '0';
+            popup.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                popup.style.display = 'none';
+                popup.style.opacity = '';
+                popup.style.transition = '';
+            }, 300);
+        }
+        // ==========================================
+        // 🔥 PROFILE COMPLETION CHECK FUNCTION END
+        // ==========================================
 
         // 4. Lock Screen logic
         function showLockScreen() {
@@ -3962,8 +4522,9 @@
             const txId = txInput ? txInput.value.trim() : "";
             const sound = document.getElementById("successPing");
 
+            // 1. Basic Validations
             if (!currentQRProduct) {
-                alert("❌ Error: First Select Xaiomi Account! then click Buy now");
+                alert("❌ Error: First Select Xiaomi Account! then click Buy now");
                 return;
             }
             if (!txId) {
@@ -3971,20 +4532,24 @@
                 return;
             }
 
-            // Final price calculate karo
-            const finalAmount = (window.discountApplied > 0) ? (currentProductPrice - window.discountApplied) : currentProductPrice;
+            // 🔥 BUG FIX: Yahan dobara minus (-) nahi karna hai. 
+            // Jo currentProductPrice hai wahi final amount hai kyunki applyCoupon ne usse pehle hi update kar diya hai.
+            const finalAmount = Number(currentProductPrice);
 
             try {
+                // Button ko disable karein taaki user baar baar click na kare
+                const submitBtn = document.querySelector('.submit-btn');
+                if (submitBtn) submitBtn.disabled = true;
+
                 // --- [ID MATCH FIX] User Profile Details Fetch ---
                 const userDoc = await db.collection('users').doc(auth.currentUser.uid).get();
                 const userData = userDoc.exists ? userDoc.data() : {};
 
-                // Wahi keys use kar rahe hain jo aapne updateFullProfile mein save ki hain
                 const fullName = userData.name || "Not Set";
                 const mobile = userData.mobile || "Not Set";
                 const telegramUser = userData.telegram || "Not Set";
 
-                // 1. Coupon usage count increment
+                // 1. Coupon usage count increment (Sirf tab jab coupon apply hua ho)
                 if (window.appliedCouponId) {
                     await db.collection('coupons').doc(window.appliedCouponId).update({
                         usedCount: firebase.firestore.FieldValue.increment(1)
@@ -4000,7 +4565,7 @@
                     userTelegram: telegramUser,
                     transactionId: txId,
                     productId: currentQRProduct,
-                    amount: finalAmount,
+                    amount: finalAmount, // AB SAHI 800 JAYEGA
                     status: 'pending',
                     submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     couponUsed: window.currentCouponCode || "none"
@@ -4016,10 +4581,12 @@
                     `📦 <b>Product Info:</b>\n` +
                     `💳 UTR: ${txId}\n` +
                     `📂 Account: ${currentQRProduct}\n` +
-                    `💰 Amount: ₹${finalAmount}\n` +
+                    `💰 Amount: ₹${finalAmount}\n` + // Telegram pe bhi 800 dikhayega
                     `🎫 Coupon: ${window.currentCouponCode || 'None'}`;
 
-                sendTelegramAlert(alertMsg);
+                if (typeof sendTelegramAlert === 'function') {
+                    sendTelegramAlert(alertMsg);
+                }
 
                 // 4. Effects
                 if (typeof launchFireworks === 'function') launchFireworks();
@@ -4028,10 +4595,11 @@
 
                 alert("✅ Success! Admin 5m mein approve kar dega");
 
-                // 5. Cleanup
+                // 5. Cleanup (Reset variables for next order)
                 window.appliedCouponId = null;
                 window.currentCouponCode = null;
                 window.discountApplied = 0;
+                if (txInput) txInput.value = "";
 
                 closeQRModal();
                 showSection('mykeys');
@@ -4039,8 +4607,11 @@
             } catch (error) {
                 console.error("Submit Error:", error);
                 alert("❌ Error: " + error.message);
+                const submitBtn = document.querySelector('.submit-btn');
+                if (submitBtn) submitBtn.disabled = false;
             }
         }
+
 
 
         // ==========================================
@@ -4440,99 +5011,7 @@
 
 
 
-        // 3. Load & Display Coupons with better UI
-        async function loadActiveCoupons() {
-            // 1. Check karein ki Admin Panel mein ye ID exist karti hai
-            const list = document.getElementById('activeCouponsList');
-            if (!list) {
-                console.error("Error: 'activeCouponsList' element nahi mila!");
-                return;
-            }
-
-            list.innerHTML = '<p style="text-align:center; color:#888; font-size:12px;">⌛ Loading coupons...</p>';
-
-            try {
-                // Real-time listener taaki delete/add turant dikhe
-                db.collection('coupons').orderBy('createdAt', 'desc').onSnapshot((snap) => {
-                    let html = '';
-
-                    if (snap.empty) {
-                        list.innerHTML = '<p style="text-align:center; color:#555; font-size:12px;">📭 No active coupons found.</p>';
-                        return;
-                    }
-
-                    snap.forEach(doc => {
-                        const d = doc.data();
-                        const symbol = d.type === 'fixed' ? '₹' : '%';
-
-                        // Expiry Date check (Safe handling)
-                        const exp = d.expiryDate || 'No Expiry';
-
-                        // Usage color logic: Jab limit khatam ho jaye toh red dikhe
-                        const isLimitFull = (d.usedCount >= d.usageLimit);
-                        const limitColor = isLimitFull ? '#ff4444' : '#6dff9a';
-
-                        html += `
-    <div style="
-        background: linear-gradient(145deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6)); 
-        border: 1px solid rgba(255, 235, 59, 0.1); 
-        padding: 15px; 
-        border-radius: 18px; 
-        margin-bottom: 5px; 
-        position: relative;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    ">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="
-                    background: linear-gradient(90deg, #ffeb3b, #fbc02d); 
-                    color: #000; 
-                    padding: 4px 12px; 
-                    border-radius: 8px; 
-                    font-weight: 900; 
-                    font-size: 12px; 
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                ">${d.code}</span>
-
-                <div onclick="copyToClipboard('${d.code}', this)" style="cursor: pointer; display: flex; align-items: center; transition: 0.2s; padding: 4px;" title="Copy Code">
-                    <svg id="copy_icon_${doc.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 2px rgba(56, 189, 248, 0.3));">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                </div>
-            </div>
-
-            <button onclick="deleteCoupon('${doc.id}')" style="background: rgba(255, 68, 68, 0.05); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 8px; padding: 6px 12px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase;">
-                🗑️ Remove
-            </button>
-        </div>
-
-        <div style="margin-bottom: 5px;">
-            <div style="font-size: 16px; color: #fff; font-weight: 800;">
-                <span style="color: #6dff9a;">${d.value}${symbol}</span> OFF
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px;">
-            <span style="color: #94a3b8;">⏳ Exp: <b style="color: #ddd;">${exp}</b></span>
-            <div style="background: rgba(255, 255, 255, 0.03); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                <span style="color: ${limitColor}; font-weight: 900;">${d.usedCount || 0} / ${d.usageLimit} USED</span>
-            </div>
-        </div>
-    </div>
-`;
-
-
-
-                    });
-                    list.innerHTML = html;
-                });
-            } catch (e) {
-                console.error("Coupon Load Error:", e);
-                list.innerHTML = '<p style="color:#ff4444; text-align:center; font-size:12px;">❌ Error loading coupons.</p>';
-            }
-        }
+        // loadActiveCoupons removed (admin-only function)
 
 
 
@@ -4732,6 +5211,42 @@
             }
         };
 
+
+        // ===== SCROLL HIDE / SHOW BOTTOM NAV =====
+        (function () {
+            let lastScrollY = 0;
+            let ticking = false;
+
+            window.addEventListener('scroll', function () {
+                if (ticking) return;
+                ticking = true;
+
+                requestAnimationFrame(function () {
+                    // Only on mobile
+                    if (window.innerWidth >= 768) {
+                        ticking = false;
+                        return;
+                    }
+
+                    const nav = document.getElementById('mobileBottomNav');
+                    if (!nav) { ticking = false; return; }
+
+                    const currentScrollY = window.scrollY;
+
+                    if (currentScrollY > lastScrollY + 10) {
+                        // Scroll DOWN → hide nav
+                        nav.classList.add('nav-hidden');
+                    } else if (currentScrollY < lastScrollY - 5) {
+                        // Scroll UP → show nav
+                        nav.classList.remove('nav-hidden');
+                    }
+
+                    lastScrollY = currentScrollY;
+                    ticking = false;
+                });
+            }, { passive: true });
+        })();
+        // ===== SCROLL HIDE / SHOW BOTTOM NAV END =====
 
     </script>
 </body>
