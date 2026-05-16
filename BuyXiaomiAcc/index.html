@@ -3548,7 +3548,7 @@
                 formData.append('profile_pic', file);
                 formData.append('uid', currentUser.uid); // Pass UID for safe naming
 
-                const response = await fetch('https://helproot.online/img/assist/upload.php', {
+                const response = await fetch('https://helproot.in/img/assist/upload.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -3559,7 +3559,7 @@
                     throw new Error(result.message || 'Upload failed on server.');
                 }
 
-                const uploadedUrl = result.url; // Target URL e.g. https://helproot.online/img/assist/userXYZ-12345.jpg
+                const uploadedUrl = result.url; // Target URL e.g. https://helproot.in/img/assist/userXYZ-12345.jpg
 
                 // 2. Save URL to Firebase
                 status.textContent = '✅ Image uploaded! Updating profile...';
