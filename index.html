@@ -1,11 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=https://helproot.in">
-    <title>Redirecting...</title>
+<meta charset="UTF-8">
+<title>Redirecting...</title>
+<style>
+  /* Center everything */
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #111;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    flex-direction: column;
+  }
+
+  /* Loader animation */
+  .loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #4CAF50; /* Green */
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 1.5s linear infinite;
+    margin-bottom: 20px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  p {
+    font-size: 18px;
+    color: #ddd;
+  }
+</style>
 </head>
 <body>
-    <p>Aapko redirect kiya ja raha hai <a href="https://helproot.in">helproot.in</a> par...</p>
+
+<div class="loader"></div>
+<p>Loading website, please wait...</p>
+
+<script>
+  // 3 second ke baad redirect
+  setTimeout(function(){
+    window.location.href = "https://helproot.in/BuyMiAccount";
+  }, 3000); // 3000ms = 3 seconds
+</script>
+
 </body>
 </html>
